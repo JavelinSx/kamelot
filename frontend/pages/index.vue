@@ -154,15 +154,7 @@
           <!-- Glass эффект -->
           <div class="absolute inset-0 backdrop-blur-md bg-white/10 border border-white/20 
             group-hover:backdrop-blur-none group-hover:bg-transparent group-hover:border-transparent 
-            transition-all duration-500"></div>
-
-          <!-- Градиентный overlay -->
-          <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent
-            group-hover:from-black/60 transition-all duration-500"></div>
-
-          <!-- Дополнительный overlay для эффекта -->
-          <div class="absolute inset-0 bg-red-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-          </div>
+            transition-all duration-500" v-if="!isMobile"></div>
 
           <!-- Контент карточки -->
           <div class="relative z-10 h-full flex flex-col justify-center p-4 sm:p-6">
@@ -265,7 +257,7 @@ useHead({
 
 // Auth
 const { user } = useAuth();
-
+const { isMobile } = useBreakpoints()
 // Reactive data
 const loading = ref(true);
 const userStats = ref({
