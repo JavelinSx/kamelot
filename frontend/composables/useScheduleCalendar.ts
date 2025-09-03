@@ -456,7 +456,7 @@ export const useScheduleCalendar = () => {
     scheduleItems,
     filteredItems,
     activeFilters,
-
+    activeQuickFilters: activeFilters,
     // Computed
     headerTitle,
     selectedDayEvents,
