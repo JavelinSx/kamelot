@@ -53,7 +53,7 @@ export function useSchedule(options: { autoFetch?: boolean } = {}) {
       // Обновляем расписание
       await fetchSchedule();
 
-      return response.booking;
+      return response.data;
     } catch (err: any) {
       error.value = err.message || "Ошибка бронирования";
       throw err;

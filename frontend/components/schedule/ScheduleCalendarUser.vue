@@ -46,41 +46,49 @@
       </div>
     </div>
 
-    <!-- NuxtUI Calendar -->
-    <UCalendar v-model="selectedDate" :ui="calendarUI" :color="'primary'" @update:model-value="handleDateSelect">
-      <!-- Кастомизация дня -->
-      <template #day="{ day }">
-        <div class="relative w-full h-full flex flex-col items-center justify-center p-1">
+    <!-- Календарь на обычных Date (без @internationalized/date) -->
+    <div class="calendar-container bg-gray-900 rounded-lg p-4 border border-gray-700">
+      <!-- Заголовки дней недели -->
+      <div class="grid grid-cols-7 gap-1 mb-2">
+        <div v-for="day in weekDays" :key="day" class="text-center text-sm font-medium text-gray-400 p-2">
+          {{ day }}
+        </div>
+      </div>
+
+      <!-- Дни месяца -->
+      <div class="grid grid-cols-7 gap-1">
+        <div v-for="day in calendarDays" :key="day.dateString" :class="getDayClasses(day)"
+          @click="selectDate(day.date)">
           <!-- Номер дня -->
           <div :class="getDayNumberClasses(day)">
-            {{ day.day }}
+            {{ day.dayNumber }}
           </div>
 
           <!-- Тренировки пользователя на этот день -->
-          <div v-if="getUserWorkoutsForDay(day).length > 0" class="workouts-container mt-1 w-full">
-            <div v-for="workout in getUserWorkoutsForDay(day).slice(0, 2)" :key="workout.id"
+          <div v-if="day.workouts.length > 0" class="workouts-container mt-1 w-full">
+            <div v-for="workout in day.workouts.slice(0, 2)" :key="workout.id"
               :class="getWorkoutIndicatorClasses(workout)" @click.stop="selectWorkout(workout)">
               <div class="flex items-center justify-center">
-                <UIcon :name="getWorkoutIcon(workout.type)" class="w-2 h-2" />
+                <UIcon :name="getWorkoutIcon(workout.workout.type)" class="w-2 h-2" />
               </div>
             </div>
 
             <!-- Показать количество дополнительных тренировок -->
-            <div v-if="getUserWorkoutsForDay(day).length > 2" class="text-xs text-gray-400 text-center mt-1">
-              +{{ getUserWorkoutsForDay(day).length - 2 }}
+            <div v-if="day.workouts.length > 2" class="text-xs text-gray-400 text-center mt-1">
+              +{{ day.workouts.length - 2 }}
             </div>
           </div>
 
           <!-- Индикатор сегодняшнего дня -->
-          <div v-if="isToday(day)"
+          <div v-if="day.isToday"
             class="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-yellow-500 rounded-full"></div>
         </div>
-      </template>
-    </UCalendar>
+      </div>
+    </div>
 
     <!-- Детали выбранного дня -->
     <div v-if="selectedDayWorkouts.length > 0" class="selected-day-details mt-6">
-      <UCard class="bg-gray-800">
+      <UCard class="bg-gray-800 border-gray-700">
         <template #header>
           <h3 class="text-lg font-semibold text-white">
             Тренировки на {{ formatSelectedDate }}
@@ -93,7 +101,7 @@
             @click="selectWorkout(workout)">
             <div class="flex items-center gap-3">
               <div :class="getWorkoutIconClasses(workout.status)">
-                <UIcon :name="getWorkoutIcon(workout.type)" class="w-4 h-4" />
+                <UIcon :name="getWorkoutIcon(workout.workout.type)" class="w-4 h-4" />
               </div>
 
               <div>
@@ -102,7 +110,7 @@
                   {{ formatTime(workout.startTime) }} - {{ formatTime(workout.endTime) }}
                 </p>
                 <p class="text-xs text-gray-500">
-                  {{ workout.instructor?.firstName }} {{ workout.instructor?.lastName }}
+                  {{ workout.trainer?.user.firstName }} {{ workout.trainer?.user.lastName }}
                 </p>
               </div>
             </div>
@@ -123,10 +131,10 @@
 
     <!-- Модалка с деталями тренировки -->
     <UModal v-model="workoutModalOpen">
-      <UCard v-if="selectedWorkout">
+      <UCard v-if="selectedWorkout" class="bg-gray-900 border-gray-700">
         <template #header>
           <div class="flex items-center justify-between">
-            <h3 class="text-lg font-semibold">{{ selectedWorkout.workout.name }}</h3>
+            <h3 class="text-lg font-semibold text-white">{{ selectedWorkout.workout.name }}</h3>
             <UButton color="gray" variant="ghost" icon="i-heroicons-x-mark" @click="workoutModalOpen = false" />
           </div>
         </template>
@@ -144,31 +152,35 @@
           <div class="grid grid-cols-2 gap-4 text-sm">
             <div>
               <span class="text-gray-400">Дата:</span>
-              <p>{{ formatDate(selectedWorkout.startTime) }}</p>
+              <p class="text-white">{{ formatDate(selectedWorkout.startTime) }}</p>
             </div>
             <div>
               <span class="text-gray-400">Время:</span>
-              <p>{{ formatTime(selectedWorkout.startTime) }} - {{ formatTime(selectedWorkout.endTime) }}</p>
+              <p class="text-white">{{ formatTime(selectedWorkout.startTime) }} - {{ formatTime(selectedWorkout.endTime)
+                }}
+              </p>
             </div>
             <div>
               <span class="text-gray-400">Инструктор:</span>
-              <p>{{ selectedWorkout.instructor?.firstName }} {{ selectedWorkout.instructor?.lastName }}</p>
+              <p class="text-white">{{ selectedWorkout.trainer?.user.firstName }} {{
+                selectedWorkout.trainer?.user.lastName
+                }}</p>
             </div>
             <div>
               <span class="text-gray-400">Длительность:</span>
-              <p>{{ selectedWorkout.workout.duration }} мин</p>
+              <p class="text-white">{{ selectedWorkout.workout.duration }} мин</p>
             </div>
           </div>
 
           <div v-if="selectedWorkout.workout.description">
             <span class="text-gray-400">Описание:</span>
-            <p class="mt-1">{{ selectedWorkout.workout.description }}</p>
+            <p class="mt-1 text-white">{{ selectedWorkout.workout.description }}</p>
           </div>
 
           <!-- Заметки пользователя -->
-          <div v-if="selectedWorkout.userNotes">
+          <div v-if="selectedWorkout.notes">
             <span class="text-gray-400">Заметки:</span>
-            <p class="mt-1 text-sm bg-gray-700 p-2 rounded">{{ selectedWorkout.userNotes }}</p>
+            <p class="mt-1 text-sm bg-gray-700 p-2 rounded text-gray-300">{{ selectedWorkout.notes }}</p>
           </div>
         </div>
 
@@ -189,31 +201,30 @@
 </template>
 
 <script setup lang="ts">
-import { CalendarDate, getLocalTimeZone, today } from '@internationalized/date'
 import type { ScheduleItem, WorkoutType } from '~/types'
 import {
   getMartialArtColor,
   getWorkoutTypeLabel,
   type BadgeColor
-} from '~/utils/martial-arts'
+} from '~/types/martial-arts'
 
-// Props
+// Props (используем обычные Date вместо CalendarDate)
 interface Props {
   userWorkouts: ScheduleItem[] // Только тренировки текущего пользователя
-  selectedDate?: CalendarDate
+  selectedDate?: Date
   view?: 'month' | 'week'
   loading?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  selectedDate: () => today(getLocalTimeZone()),
+  selectedDate: () => new Date(),
   view: 'month',
   loading: false
 })
 
-// Emits
+// Emits (используем обычные Date)
 interface Emits {
-  'dateSelect': [date: CalendarDate]
+  'dateSelect': [date: Date]
   'workoutSelect': [workout: ScheduleItem]
   'viewChange': [view: string]
   'cancelWorkout': [workout: ScheduleItem]
@@ -222,36 +233,34 @@ interface Emits {
 const emit = defineEmits<Emits>()
 
 // Reactive data
-const selectedDate = ref(props.selectedDate)
+const selectedDate = ref(new Date(props.selectedDate))
 const currentView = ref(props.view)
 const workoutModalOpen = ref(false)
 const selectedWorkout = ref<ScheduleItem | null>(null)
 
-// Calendar UI customization для пользовательского календаря
-const calendarUI = {
-  root: 'bg-gray-900 border border-gray-700 rounded-lg p-4',
-  heading: 'flex items-center justify-between mb-4',
-  headCell: 'text-center text-sm font-medium text-gray-400 p-2',
-  cellTrigger: [
-    'w-full h-16 p-1 rounded-lg transition-all duration-200',
-    'hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500',
-    'data-[selected]:bg-blue-600 data-[selected]:text-white',
-    'data-[today]:ring-2 data-[today]:ring-yellow-500'
-  ].join(' ')
+const weekDays = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб']
+
+// Interface for calendar day
+interface CalendarDay {
+  date: Date
+  dateString: string
+  dayNumber: number
+  isCurrentMonth: boolean
+  isToday: boolean
+  isSelected: boolean
+  workouts: ScheduleItem[]
 }
 
 // Computed
 const formatCurrentMonth = computed(() => {
-  const date = selectedDate.value.toDate(getLocalTimeZone())
-  return date.toLocaleDateString('ru-RU', {
+  return selectedDate.value.toLocaleDateString('ru-RU', {
     year: 'numeric',
     month: 'long'
   })
 })
 
 const formatSelectedDate = computed(() => {
-  const date = selectedDate.value.toDate(getLocalTimeZone())
-  return date.toLocaleDateString('ru-RU', {
+  return selectedDate.value.toLocaleDateString('ru-RU', {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
@@ -259,26 +268,71 @@ const formatSelectedDate = computed(() => {
   })
 })
 
+const calendarDays = computed((): CalendarDay[] => {
+  const year = selectedDate.value.getFullYear()
+  const month = selectedDate.value.getMonth()
+  const today = new Date()
+
+  // Первый день месяца
+  const firstDay = new Date(year, month, 1)
+
+  // Начинаем с воскресенья предыдущей недели
+  const startDate = new Date(firstDay)
+  startDate.setDate(firstDay.getDate() - firstDay.getDay())
+
+  const days: CalendarDay[] = []
+  const currentDate = new Date(startDate)
+
+  // Генерируем 42 дня (6 недель)
+  for (let i = 0; i < 42; i++) {
+    const date = new Date(currentDate)
+    const dateString = date.toISOString().split('T')[0]
+
+    days.push({
+      date,
+      dateString,
+      dayNumber: date.getDate(),
+      isCurrentMonth: date.getMonth() === month,
+      isToday: isSameDay(date, today),
+      isSelected: isSameDay(date, selectedDate.value),
+      workouts: getUserWorkoutsForDay(date)
+    })
+
+    currentDate.setDate(currentDate.getDate() + 1)
+  }
+
+  return days
+})
+
 const selectedDayWorkouts = computed(() => {
   return getUserWorkoutsForDay(selectedDate.value)
 })
 
 // Methods
-const handleDateSelect = (date: CalendarDate) => {
-  selectedDate.value = date
+const handleDateSelect = (date: Date) => {
+  selectedDate.value = new Date(date)
+  emit('dateSelect', date)
+}
+
+const selectDate = (date: Date) => {
+  selectedDate.value = new Date(date)
   emit('dateSelect', date)
 }
 
 const previousMonth = () => {
-  selectedDate.value = selectedDate.value.subtract({ months: 1 })
+  const newDate = new Date(selectedDate.value)
+  newDate.setMonth(newDate.getMonth() - 1)
+  selectedDate.value = newDate
 }
 
 const nextMonth = () => {
-  selectedDate.value = selectedDate.value.add({ months: 1 })
+  const newDate = new Date(selectedDate.value)
+  newDate.setMonth(newDate.getMonth() + 1)
+  selectedDate.value = newDate
 }
 
 const goToToday = () => {
-  selectedDate.value = today(getLocalTimeZone())
+  selectedDate.value = new Date()
 }
 
 const changeView = (view: string) => {
@@ -300,14 +354,19 @@ const cancelWorkout = () => {
 }
 
 // Utility methods
-const isToday = (day: CalendarDate): boolean => {
-  const todayDate = today(getLocalTimeZone())
-  return day.compare(todayDate) === 0
+const isToday = (date: Date): boolean => {
+  const today = new Date()
+  return isSameDay(date, today)
 }
 
-const getUserWorkoutsForDay = (day: CalendarDate): ScheduleItem[] => {
-  const dayDate = day.toDate(getLocalTimeZone())
-  const dayStr = dayDate.toISOString().split('T')[0]
+const isSameDay = (date1: Date, date2: Date): boolean => {
+  return date1.getDate() === date2.getDate() &&
+    date1.getMonth() === date2.getMonth() &&
+    date1.getFullYear() === date2.getFullYear()
+}
+
+const getUserWorkoutsForDay = (date: Date): ScheduleItem[] => {
+  const dayStr = date.toISOString().split('T')[0]
 
   return props.userWorkouts.filter(workout => {
     const workoutDate = new Date(workout.startTime).toISOString().split('T')[0]
@@ -315,22 +374,51 @@ const getUserWorkoutsForDay = (day: CalendarDate): ScheduleItem[] => {
   })
 }
 
-const getDayNumberClasses = (day: CalendarDate): string => {
+const getDayClasses = (day: CalendarDay): string => {
+  const classes = [
+    'calendar-day relative min-h-[60px] p-2 rounded-lg transition-all duration-200 cursor-pointer',
+    'hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500'
+  ]
+
+  if (day.isCurrentMonth) {
+    classes.push('bg-gray-800')
+  } else {
+    classes.push('bg-gray-850 opacity-50')
+  }
+
+  if (day.isSelected) {
+    classes.push('ring-2 ring-blue-500 bg-blue-900/20')
+  }
+
+  if (day.isToday) {
+    classes.push('ring-2 ring-yellow-500')
+  }
+
+  return classes.join(' ')
+}
+
+const getDayNumberClasses = (day: CalendarDay): string => {
   const classes = ['day-number', 'font-medium', 'text-sm']
 
-  if (isToday(day)) {
-    classes.push('text-yellow-400')
-  } else if (getUserWorkoutsForDay(day).length > 0) {
+  if (day.isToday) {
+    classes.push('text-yellow-400', 'font-bold')
+  } else if (day.workouts.length > 0) {
     classes.push('text-blue-400')
+  } else if (day.isCurrentMonth) {
+    classes.push('text-white')
   } else {
-    classes.push('text-gray-300')
+    classes.push('text-gray-500')
   }
 
   return classes.join(' ')
 }
 
 const getWorkoutIndicatorClasses = (workout: ScheduleItem): string => {
-  const baseClasses = ['workout-indicator', 'w-4', 'h-4', 'rounded-full', 'mb-1', 'flex', 'items-center', 'justify-center', 'cursor-pointer', 'transition-all', 'duration-200', 'hover:scale-110']
+  const baseClasses = [
+    'workout-indicator', 'w-4', 'h-4', 'rounded-full', 'mb-1', 'flex',
+    'items-center', 'justify-center', 'cursor-pointer', 'transition-all',
+    'duration-200', 'hover:scale-110'
+  ]
 
   switch (workout.status) {
     case 'completed':
@@ -385,9 +473,10 @@ const getWorkoutIcon = (type: WorkoutType): string => {
 const getStatusColor = (status: string): BadgeColor => {
   const statusColors: Record<string, BadgeColor> = {
     scheduled: 'blue',
+    in_progress: 'blue',
     completed: 'green',
     cancelled: 'red',
-    'no-show': 'orange'
+    postponed: 'yellow'
   }
   return statusColors[status] || 'gray'
 }
@@ -395,9 +484,10 @@ const getStatusColor = (status: string): BadgeColor => {
 const getStatusLabel = (status: string): string => {
   const statusLabels: Record<string, string> = {
     scheduled: 'Запланировано',
+    in_progress: 'Идет занятие',
     completed: 'Завершено',
     cancelled: 'Отменено',
-    'no-show': 'Не явился'
+    postponed: 'Отложено'
   }
   return statusLabels[status] || status
 }
@@ -429,7 +519,9 @@ const formatDate = (dateString: string): string => {
 
 // Watch for prop changes
 watch(() => props.selectedDate, (newDate) => {
-  selectedDate.value = newDate
+  if (newDate) {
+    selectedDate.value = new Date(newDate)
+  }
 })
 
 watch(() => props.view, (newView) => {
@@ -440,6 +532,10 @@ watch(() => props.view, (newView) => {
 <style scoped>
 .user-schedule-calendar {
   @apply space-y-4;
+}
+
+.calendar-day {
+  @apply relative;
 }
 
 .workouts-container {
@@ -475,12 +571,14 @@ watch(() => props.view, (newView) => {
   }
 }
 
-/* Стили для календаря */
-:deep([data-selected]) {
-  @apply bg-blue-600 text-white;
-}
+/* Адаптивность */
+@media (max-width: 640px) {
+  .calendar-day {
+    min-height: 50px;
+  }
 
-:deep([data-today]) {
-  @apply ring-2 ring-yellow-500;
+  .workouts-container {
+    max-height: 30px;
+  }
 }
 </style>

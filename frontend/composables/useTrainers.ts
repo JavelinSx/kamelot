@@ -63,7 +63,7 @@ export function useTrainers(options: { autoFetch?: boolean } = {}) {
 
     try {
       const response = await $fetch<TrainerResponse>(`/api/trainers/${id}`);
-      return response.trainer;
+      return response.data;
     } catch (err: any) {
       error.value = err.message || "Ошибка загрузки тренера";
       throw err;

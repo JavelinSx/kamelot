@@ -46,6 +46,11 @@ export interface ApiError {
 
 export interface ScheduleResponse extends ApiResponse<ScheduleItem[]> {}
 
+export interface AuthResponse {
+  user: User;
+  token: string;
+  success: boolean;
+}
 export interface ScheduleBookResponse
   extends ApiResponse<{
     booking: Booking;
@@ -53,6 +58,36 @@ export interface ScheduleBookResponse
   }> {}
 
 export interface UserWorkoutsResponse extends ApiResponse<ScheduleItem[]> {}
+
+export interface PaginatedResponse<T = any> {
+  data: T[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+  };
+}
+
+export interface PaginatedApiResponse<T = any> extends ApiResponse<T[]> {
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+  };
+}
+
+export interface BookingResponse
+  extends ApiResponse<{
+    booking: Booking;
+    schedule: ScheduleItem;
+    message?: string;
+  }> {}
 
 export interface BookEventRequest {
   userId?: number;
