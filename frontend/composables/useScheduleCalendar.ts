@@ -1,6 +1,5 @@
 // composables/useScheduleCalendar.ts
 import type { ScheduleItem } from "~/types";
-import type { ScheduleResponse, UserWorkoutsResponse } from "~/types/api";
 
 export const useScheduleCalendar = () => {
   // Reactive state (используем обычные Date вместо CalendarDate)
@@ -13,9 +12,6 @@ export const useScheduleCalendar = () => {
   const scheduleItems = ref<ScheduleItem[]>([]);
   const filteredItems = ref<ScheduleItem[]>([]);
   const activeFilters = ref<string[]>([]);
-
-  // Добавляем недостающее свойство
-  const activeQuickFilters = ref<string[]>([]);
 
   // Date utilities
   const formatDate = (
@@ -130,7 +126,6 @@ export const useScheduleCalendar = () => {
 
   const filterEvents = (filters: string[]) => {
     activeFilters.value = filters;
-    activeQuickFilters.value = filters; // Синхронизируем оба массива
 
     if (filters.length === 0) {
       filteredItems.value = scheduleItems.value;
@@ -175,9 +170,9 @@ export const useScheduleCalendar = () => {
       isLoading.value = true;
       error.value = null;
 
-      const response = await $fetch(`/api/schedule/${eventId}/book`, {
+      const { data } = (await $fetch(`/api/schedule/${eventId}/book`, {
         method: "POST",
-      });
+      })) as any;
 
       // Обновляем локальные данные
       const eventIndex = scheduleItems.value.findIndex(
@@ -287,15 +282,9 @@ export const useScheduleCalendar = () => {
         params.endDate = endDate.toISOString();
       }
 
-      const response = await $fetch<ScheduleResponse>("/api/schedule", {
-        params,
-      });
-
-      // Поддерживаем разные форматы ответа API
-      const data = response.data || (response as any);
-
-      scheduleItems.value = Array.isArray(data) ? data : [];
-      filteredItems.value = Array.isArray(data) ? data : [];
+      const { data } = (await $fetch("/api/schedule", { params })) as any;
+      scheduleItems.value = data;
+      filteredItems.value = data;
     } catch (err: any) {
       error.value = err.message || "Ошибка загрузки данных";
       console.error("Failed to load schedule data:", err);
@@ -321,16 +310,9 @@ export const useScheduleCalendar = () => {
         params.endDate = endDate.toISOString();
       }
 
-      const response = await $fetch<UserWorkoutsResponse>(
-        "/api/users/workouts",
-        { params }
-      );
-
-      // Поддерживаем разные форматы ответа API
-      const data = response.data || (response as any);
-
-      scheduleItems.value = Array.isArray(data) ? data : [];
-      filteredItems.value = Array.isArray(data) ? data : [];
+      const { data } = (await $fetch("/api/users/workouts", { params })) as any;
+      scheduleItems.value = data;
+      filteredItems.value = data;
     } catch (err: any) {
       error.value = err.message || "Ошибка загрузки тренировок пользователя";
       console.error("Failed to load user workouts:", err);
@@ -474,7 +456,6 @@ export const useScheduleCalendar = () => {
     scheduleItems,
     filteredItems,
     activeFilters,
-    activeQuickFilters, // Добавляем это свойство
 
     // Computed
     headerTitle,
