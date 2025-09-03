@@ -205,7 +205,7 @@ export const useScheduleCalendar = () => {
       const toast = useToast();
       toast.add({
         title: "Ошибка",
-        description: error.value,
+        description: error.value ?? undefined,
         color: "red",
         icon: "i-heroicons-x-circle",
       });
@@ -257,7 +257,7 @@ export const useScheduleCalendar = () => {
       const toast = useToast();
       toast.add({
         title: "Ошибка",
-        description: error.value,
+        description: error.value ?? undefined,
         color: "red",
         icon: "i-heroicons-x-circle",
       });
