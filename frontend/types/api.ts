@@ -1,4 +1,5 @@
-// types/api.ts
+// types/api.ts - Типы для API запросов и ответов (интегрированная версия)
+
 import type {
   BlogPost,
   Booking,
@@ -9,7 +10,7 @@ import type {
 } from "./index";
 
 // ========================================
-// БАЗОВЫЕ ТИПЫ API ОТВЕТОВ
+// БАЗОВЫЕ ТИПЫ ОТВЕТОВ
 // ========================================
 
 export interface ApiResponse<T = any> {
@@ -22,14 +23,16 @@ export interface ApiResponse<T = any> {
 
 export interface PaginatedResponse<T = any> {
   data: T[];
-  meta: {
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-    hasNextPage: boolean;
-    hasPreviousPage: boolean;
-  };
+  meta: PaginationMeta;
+}
+
+export interface PaginationMeta {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
 }
 
 export interface ApiError {
@@ -38,206 +41,24 @@ export interface ApiError {
   error?: string;
   timestamp: string;
   path: string;
+  details?: Record<string, any>;
 }
 
 // ========================================
-// ТИПЫ ДЛЯ КАЛЕНДАРЯ И РАСПИСАНИЯ
+// ПАРАМЕТРЫ ЗАПРОСОВ
 // ========================================
 
-export interface ScheduleResponse extends ApiResponse<ScheduleItem[]> {}
-
-export interface AuthResponse {
-  user: User;
-  token: string;
-  success: boolean;
-}
-export interface ScheduleBookResponse
-  extends ApiResponse<{
-    booking: Booking;
-    schedule: ScheduleItem;
-  }> {}
-
-export interface UserWorkoutsResponse extends ApiResponse<ScheduleItem[]> {}
-
-export interface PaginatedResponse<T = any> {
-  data: T[];
-  meta: {
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-    hasNextPage: boolean;
-    hasPreviousPage: boolean;
-  };
+export interface PaginationParams {
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
 }
 
-export interface PaginatedApiResponse<T = any> extends ApiResponse<T[]> {
-  meta: {
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-    hasNextPage: boolean;
-    hasPreviousPage: boolean;
-  };
+export interface SearchParams extends PaginationParams {
+  query?: string;
+  filters?: Record<string, any>;
 }
-
-export interface BookingResponse
-  extends ApiResponse<{
-    booking: Booking;
-    schedule: ScheduleItem;
-    message?: string;
-  }> {}
-
-export interface BookEventRequest {
-  userId?: number;
-  notes?: string;
-}
-
-export interface CancelBookingRequest {
-  reason?: string;
-}
-
-// ========================================
-// ТИПЫ ДЛЯ АУТЕНТИФИКАЦИИ
-// ========================================
-
-export interface LoginResponse
-  extends ApiResponse<{
-    user: User;
-    accessToken: string;
-    refreshToken: string;
-    expiresIn: number;
-  }> {}
-
-export interface RegisterResponse
-  extends ApiResponse<{
-    user: User;
-    accessToken: string;
-    refreshToken: string;
-  }> {}
-
-export interface RefreshTokenResponse
-  extends ApiResponse<{
-    accessToken: string;
-    expiresIn: number;
-  }> {}
-
-// ========================================
-// ТИПЫ ДЛЯ ПОЛЬЗОВАТЕЛЕЙ
-// ========================================
-
-export interface UserProfileResponse extends ApiResponse<User> {}
-
-export interface UserStatsResponse
-  extends ApiResponse<{
-    totalWorkouts: number;
-    totalHours: number;
-    currentStreak: number;
-    favoriteWorkoutType: string;
-    completionRate: number;
-    monthlyStats: Array<{
-      month: string;
-      workouts: number;
-      hours: number;
-    }>;
-  }> {}
-
-export interface UpdateUserRequest {
-  firstName?: string;
-  lastName?: string;
-  phone?: string;
-  avatar?: string;
-  fitnessGoals?: string;
-  fitnessLevel?: "beginner" | "intermediate" | "advanced";
-}
-
-// ========================================
-// ТИПЫ ДЛЯ ТРЕНЕРОВ
-// ========================================
-
-export interface TrainersResponse extends ApiResponse<Trainer[]> {}
-
-export interface TrainerResponse extends ApiResponse<Trainer> {}
-
-export interface TrainerScheduleResponse
-  extends ApiResponse<{
-    trainer: Trainer;
-    schedule: ScheduleItem[];
-    availability: Array<{
-      date: string;
-      slots: Array<{
-        time: string;
-        available: boolean;
-      }>;
-    }>;
-  }> {}
-
-// ========================================
-// ТИПЫ ДЛЯ ТРЕНИРОВОК
-// ========================================
-
-export interface WorkoutsResponse extends ApiResponse<Workout[]> {}
-
-export interface WorkoutResponse extends ApiResponse<Workout> {}
-
-export interface CreateWorkoutRequest {
-  name: string;
-  type: string;
-  difficulty: string;
-  duration: number;
-  description?: string;
-  maxParticipants?: number;
-  price?: number;
-}
-
-// ========================================
-// ТИПЫ ДЛЯ БЛОГА
-// ========================================
-
-export interface BlogPostsResponse extends PaginatedResponse<BlogPost> {}
-
-export interface BlogPostResponse extends ApiResponse<BlogPost> {}
-
-export interface CreateBlogPostRequest {
-  title: string;
-  content: string;
-  excerpt?: string;
-  categoryId: number;
-  tags?: string[];
-  published?: boolean;
-  featuredImage?: string;
-}
-
-// ========================================
-// ТИПЫ ДЛЯ ФАЙЛОВ
-// ========================================
-
-export interface FileUploadResponse
-  extends ApiResponse<{
-    filename: string;
-    originalName: string;
-    mimetype: string;
-    size: number;
-    url: string;
-    path: string;
-  }> {}
-
-export interface MultipleFileUploadResponse
-  extends ApiResponse<
-    Array<{
-      filename: string;
-      originalName: string;
-      mimetype: string;
-      size: number;
-      url: string;
-      path: string;
-    }>
-  > {}
-
-// ========================================
-// ТИПЫ ДЛЯ ПОИСКА
-// ========================================
 
 export interface SearchRequest {
   query: string;
@@ -255,19 +76,150 @@ export interface SearchResponse<T = any> extends PaginatedResponse<T> {
 }
 
 // ========================================
-// UTILITY ТИПЫ ДЛЯ $FETCH
+// ТИПЫ ДЛЯ ФАЙЛОВ
 // ========================================
 
-// Тип для типизации ответов $fetch
-export type FetchResponse<T> = T extends ApiResponse<infer U> ? U : T;
+export interface FileUploadResponse {
+  filename: string;
+  originalName: string;
+  mimetype: string;
+  size: number;
+  url: string;
+  path: string;
+}
 
-// Helper для создания типизированных $fetch функций
-export type TypedFetch = {
-  <T>(url: string, options?: any): Promise<T>;
-};
+export interface MultiFileUploadResponse {
+  files: FileUploadResponse[];
+  failed: Array<{
+    filename: string;
+    error: string;
+  }>;
+}
 
 // ========================================
-// КОНКРЕТНЫЕ ЭНДПОИНТЫ
+// АУТЕНТИФИКАЦИЯ
+// ========================================
+
+export interface LoginResponse
+  extends ApiResponse<{
+    user: User;
+    tokens: {
+      accessToken: string;
+      refreshToken: string;
+      expiresIn: number;
+    };
+  }> {}
+
+export interface RegisterResponse
+  extends ApiResponse<{
+    user: User;
+    tokens: {
+      accessToken: string;
+      refreshToken: string;
+      expiresIn: number;
+    };
+  }> {}
+
+export interface RefreshTokenResponse
+  extends ApiResponse<{
+    tokens: {
+      accessToken: string;
+      refreshToken: string;
+      expiresIn: number;
+    };
+  }> {}
+
+// ========================================
+// РАСПИСАНИЕ И БРОНИРОВАНИЯ
+// ========================================
+
+export interface ScheduleResponse extends ApiResponse<ScheduleItem[]> {}
+
+export interface ScheduleBookResponse
+  extends ApiResponse<{
+    booking: Booking;
+    schedule: ScheduleItem;
+  }> {}
+
+export interface BookEventRequest {
+  userId?: number;
+  notes?: string;
+}
+
+export interface CancelBookingRequest {
+  reason?: string;
+  requestRefund?: boolean;
+}
+
+export interface UserWorkoutsResponse extends ApiResponse<ScheduleItem[]> {}
+
+export interface BookingResponse
+  extends ApiResponse<{
+    booking: Booking;
+    schedule: ScheduleItem;
+    message?: string;
+  }> {}
+
+// ========================================
+// ТРЕНЕРЫ
+// ========================================
+
+export interface TrainersResponse extends PaginatedResponse<Trainer> {}
+
+export interface TrainerResponse extends ApiResponse<Trainer> {}
+
+export interface CreateTrainerRequest {
+  userId: number;
+  specializations: string[];
+  experience: number;
+  bio: string;
+  certifications: string[];
+  pricing: {
+    groupSession: number;
+    personalSession: number;
+  };
+}
+
+// ========================================
+// ТРЕНИРОВКИ
+// ========================================
+
+export interface WorkoutsResponse extends PaginatedResponse<Workout> {}
+
+export interface WorkoutResponse extends ApiResponse<Workout> {}
+
+export interface CreateWorkoutRequest {
+  title: string;
+  description: string;
+  type: string;
+  difficulty: string;
+  duration: number;
+  maxParticipants: number;
+  equipment?: string[];
+  objectives: string[];
+  isPrivate?: boolean;
+}
+
+// ========================================
+// БЛОГ
+// ========================================
+
+export interface BlogPostsResponse extends PaginatedResponse<BlogPost> {}
+
+export interface BlogPostResponse extends ApiResponse<BlogPost> {}
+
+export interface CreateBlogPostRequest {
+  title: string;
+  content: string;
+  excerpt?: string;
+  categoryId: number;
+  tags?: string[];
+  published?: boolean;
+  featuredImage?: string;
+}
+
+// ========================================
+// КОНКРЕТНЫЕ API ЭНДПОИНТЫ
 // ========================================
 
 export interface ApiEndpoints {
@@ -276,130 +228,160 @@ export interface ApiEndpoints {
     body: { email: string; password: string };
     response: LoginResponse;
   };
+
   "POST /api/auth/register": {
-    body: RegisterData;
+    body: {
+      email: string;
+      password: string;
+      firstName: string;
+      lastName: string;
+      phone?: string;
+      dateOfBirth?: string;
+      gender?: string;
+      fitnessLevel: string;
+    };
     response: RegisterResponse;
   };
+
   "POST /api/auth/refresh": {
     response: RefreshTokenResponse;
+  };
+
+  "GET /api/auth/me": {
+    response: ApiResponse<{ user: User }>;
+  };
+
+  "POST /api/auth/logout": {
+    response: ApiResponse<null>;
   };
 
   // Schedule
   "GET /api/schedule": {
     query?: {
-      startDate?: string;
-      endDate?: string;
+      start?: string;
+      end?: string;
       trainerId?: number;
       workoutType?: string;
+      includePrivate?: boolean;
     };
     response: ScheduleResponse;
   };
+
   "POST /api/schedule/:id/book": {
     body?: BookEventRequest;
     response: ScheduleBookResponse;
   };
+
   "POST /api/schedule/:id/cancel": {
     body?: CancelBookingRequest;
-    response: ApiResponse<boolean>;
+    response: ApiResponse<null>;
   };
 
-  // Users
-  "GET /api/users/:id": {
-    response: UserProfileResponse;
-  };
-  "PUT /api/users/:id": {
-    body: UpdateUserRequest;
-    response: UserProfileResponse;
-  };
-  "GET /api/users/:id/stats": {
-    response: UserStatsResponse;
-  };
-  "GET /api/users/workouts": {
-    query: {
-      userId: number;
-      startDate?: string;
-      endDate?: string;
+  // Bookings
+  "GET /api/user/bookings": {
+    query?: {
+      status?: string;
+      page?: number;
+      limit?: number;
     };
-    response: UserWorkoutsResponse;
+    response: PaginatedResponse<Booking>;
+  };
+
+  "DELETE /api/bookings/:id": {
+    body?: { reason?: string };
+    response: ApiResponse<null>;
+  };
+
+  "POST /api/bookings/:id/rate": {
+    body: { rating: number; review?: string };
+    response: ApiResponse<null>;
   };
 
   // Trainers
   "GET /api/trainers": {
     query?: {
       specialization?: string[];
-      experience?: { min?: number; max?: number };
-      rating?: { min?: number };
-      availability?: { date?: string; time?: string };
-      search?: string;
+      experience?: number;
+      rating?: number;
+      page?: number;
+      limit?: number;
     };
     response: TrainersResponse;
   };
+
   "GET /api/trainers/:id": {
     response: TrainerResponse;
-  };
-  "GET /api/trainers/:id/schedule": {
-    query?: {
-      startDate?: string;
-      endDate?: string;
-    };
-    response: TrainerScheduleResponse;
   };
 
   // Workouts
   "GET /api/workouts": {
     query?: {
-      type?: string;
-      difficulty?: string;
-      duration?: { min?: number; max?: number };
+      type?: string[];
+      difficulty?: string[];
+      page?: number;
+      limit?: number;
     };
     response: WorkoutsResponse;
   };
+
   "GET /api/workouts/:id": {
     response: WorkoutResponse;
   };
-  "POST /api/workouts": {
-    body: CreateWorkoutRequest;
-    response: WorkoutResponse;
+
+  "GET /api/workouts/popular": {
+    query?: { limit?: number };
+    response: WorkoutsResponse;
   };
 
   // Blog
   "GET /api/blog/posts": {
-    query?: {
-      page?: number;
-      limit?: number;
-      category?: string;
-      tags?: string[];
-      search?: string;
-    };
+    query?: SearchParams;
     response: BlogPostsResponse;
   };
+
   "GET /api/blog/posts/:id": {
-    response: BlogPostResponse;
-  };
-  "POST /api/blog/posts": {
-    body: CreateBlogPostRequest;
     response: BlogPostResponse;
   };
 
   // Files
   "POST /api/upload": {
     body: FormData;
-    response: FileUploadResponse;
+    response: ApiResponse<FileUploadResponse>;
   };
+
   "POST /api/upload/multiple": {
     body: FormData;
-    response: MultipleFileUploadResponse;
+    response: ApiResponse<MultiFileUploadResponse>;
   };
 }
 
-// Тип для извлечения типа ответа по эндпоинту
-export type EndpointResponse<T extends keyof ApiEndpoints> =
-  ApiEndpoints[T] extends { response: infer R } ? R : never;
+// ========================================
+// УТИЛИТЫ ДЛЯ ТИПИЗАЦИИ
+// ========================================
 
-// Тип для извлечения типа тела запроса по эндпоинту
-export type EndpointBody<T extends keyof ApiEndpoints> =
-  ApiEndpoints[T] extends { body: infer B } ? B : never;
+export type ExtractApiResponse<T> = T extends ApiResponse<infer U> ? U : T;
+export type ExtractApiBody<T> = T extends { body: infer U } ? U : never;
+export type ExtractApiQuery<T> = T extends { query: infer U } ? U : never;
 
-// Тип для извлечения типа query параметров по эндпоинту
-export type EndpointQuery<T extends keyof ApiEndpoints> =
-  ApiEndpoints[T] extends { query: infer Q } ? Q : never;
+// Хелпер для создания типизированных API клиентов
+export type TypedApiClient = {
+  [K in keyof ApiEndpoints]: K extends `${infer Method} ${infer Path}`
+    ? {
+        method: Method;
+        path: Path;
+        params: ApiEndpoints[K] extends { body: any }
+          ? { body: ExtractApiBody<ApiEndpoints[K]> }
+          : ApiEndpoints[K] extends { query: any }
+          ? { query?: ExtractApiQuery<ApiEndpoints[K]> }
+          : {};
+        response: ExtractApiResponse<ApiEndpoints[K]["response"]>;
+      }
+    : never;
+};
+
+// Тип для типизации $fetch функций
+export type FetchResponse<T> = T extends ApiResponse<infer U> ? U : T;
+
+export type TypedFetch = {
+  <T>(url: string, options?: any): Promise<T>;
+};

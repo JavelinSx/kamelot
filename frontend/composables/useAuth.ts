@@ -1,11 +1,12 @@
 // composables/useAuth.ts
-import type { ApiResponse, AuthResponse } from "@/types/api";
 import type {
+  ApiResponse,
+  AuthResponse,
   LoginCredentials,
   RegisterData,
-  UpdateProfileData,
+  UpdateUserData,
   User,
-} from "~/types";
+} from "@/types";
 
 export const useAuth = () => {
   const user = ref<User | undefined>(undefined);
@@ -14,6 +15,28 @@ export const useAuth = () => {
 
   const isAuthenticated = computed(() => !!user.value);
   const isTrainer = computed(() => user.value?.role === "trainer");
+
+  // Типизированная функция для работы с токеном
+  const useAuthToken = () => {
+    return useCookie<string | null>("auth-token", {
+      default: () => null,
+      maxAge: 60 * 60 * 24 * 7, // 7 дней
+      httpOnly: false,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+    });
+  };
+
+  // Типизированная функция для refresh токена
+  const useRefreshToken = () => {
+    return useCookie<string | null>("refresh-token", {
+      default: () => null,
+      maxAge: 60 * 60 * 24 * 30, // 30 дней
+      httpOnly: false,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+    });
+  };
 
   const login = async (credentials: LoginCredentials) => {
     loading.value = true;
@@ -27,16 +50,12 @@ export const useAuth = () => {
 
       user.value = response.user;
 
-      // Способ 1: Явное указание типа через as
-      const token = useCookie("auth-token", {
-        default: () => null as string | null,
-        maxAge: 60 * 60 * 24 * 7, // 7 дней
-        httpOnly: false,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-      }) as Ref<string | null>;
+      // Сохраняем токены
+      const accessToken = useAuthToken();
+      const refreshToken = useRefreshToken();
 
-      token.value = response.token;
+      accessToken.value = response.tokens.accessToken;
+      refreshToken.value = response.tokens.refreshToken;
 
       return response;
     } catch (err: any) {
@@ -59,15 +78,12 @@ export const useAuth = () => {
 
       user.value = response.user;
 
-      const token = useCookie("auth-token", {
-        default: () => null as string | null,
-        maxAge: 60 * 60 * 24 * 7,
-        httpOnly: false,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-      }) as Ref<string | null>;
+      // Сохраняем токены
+      const accessToken = useAuthToken();
+      const refreshToken = useRefreshToken();
 
-      token.value = response.token;
+      accessToken.value = response.tokens.accessToken;
+      refreshToken.value = response.tokens.refreshToken;
 
       return response;
     } catch (err: any) {
@@ -82,15 +98,27 @@ export const useAuth = () => {
     loading.value = true;
 
     try {
-      await $fetch("/api/auth/logout", { method: "POST" });
+      // Отправляем запрос на выход с токеном
+      const accessToken = useAuthToken();
+      if (accessToken.value) {
+        await $fetch("/api/auth/logout", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken.value}`,
+          },
+        });
+      }
     } catch (err) {
       console.error("Logout error:", err);
     } finally {
+      // Очищаем состояние
       user.value = undefined;
 
-      // Удаляем токен
-      const token = useCookie("auth-token") as Ref<string | null>;
-      token.value = null;
+      // Удаляем токены
+      const accessToken = useAuthToken();
+      const refreshToken = useRefreshToken();
+      accessToken.value = null;
+      refreshToken.value = null;
 
       loading.value = false;
 
@@ -100,9 +128,9 @@ export const useAuth = () => {
   };
 
   const fetchUser = async () => {
-    const token = useCookie("auth-token") as Ref<string | null>;
+    const accessToken = useAuthToken();
 
-    if (!token.value) {
+    if (!accessToken.value) {
       return null;
     }
 
@@ -110,7 +138,7 @@ export const useAuth = () => {
       loading.value = true;
       const response = await $fetch<ApiResponse<User>>("/api/auth/me", {
         headers: {
-          Authorization: `Bearer ${token.value}`,
+          Authorization: `Bearer ${accessToken.value}`,
         },
       });
 
@@ -119,27 +147,67 @@ export const useAuth = () => {
     } catch (err) {
       console.error("Fetch user error:", err);
 
-      // Токен невалидный, удаляем его
-      token.value = null;
-      user.value = undefined;
+      // Попытка обновить токен
+      const refreshed = await refreshTokens();
+      if (!refreshed) {
+        // Токен невалидный, очищаем
+        const accessToken = useAuthToken();
+        const refreshToken = useRefreshToken();
+        accessToken.value = null;
+        refreshToken.value = null;
+        user.value = undefined;
+      }
       return null;
     } finally {
       loading.value = false;
     }
   };
 
-  const updateProfile = async (data: UpdateProfileData) => {
+  const refreshTokens = async (): Promise<boolean> => {
+    const refreshToken = useRefreshToken();
+
+    if (!refreshToken.value) {
+      return false;
+    }
+
+    try {
+      const response = await $fetch<{
+        tokens: { accessToken: string; refreshToken: string };
+      }>("/api/auth/refresh", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${refreshToken.value}`,
+        },
+      });
+
+      // Обновляем токены
+      const accessToken = useAuthToken();
+      accessToken.value = response.tokens.accessToken;
+      refreshToken.value = response.tokens.refreshToken;
+
+      return true;
+    } catch (err) {
+      console.error("Token refresh error:", err);
+      return false;
+    }
+  };
+
+  const updateProfile = async (data: UpdateUserData) => {
     loading.value = true;
     error.value = null;
 
     try {
-      const token = useCookie("auth-token") as Ref<string | null>;
+      const accessToken = useAuthToken();
+
+      if (!accessToken.value) {
+        throw new Error("Токен авторизации не найден");
+      }
 
       const response = await $fetch<ApiResponse<User>>("/api/auth/profile", {
         method: "PATCH",
         body: data,
         headers: {
-          Authorization: `Bearer ${token.value}`,
+          Authorization: `Bearer ${accessToken.value}`,
         },
       });
 
@@ -160,18 +228,23 @@ export const useAuth = () => {
 
   // Инициализация пользователя при создании composable
   const initAuth = async () => {
-    const token = useCookie("auth-token") as Ref<string | null>;
-    if (token.value) {
+    const accessToken = useAuthToken();
+    if (accessToken.value && !user.value) {
       await fetchUser();
     }
   };
 
   return {
+    // Реактивные данные (readonly для защиты)
     user: readonly(user),
     loading: readonly(loading),
     error: readonly(error),
+
+    // Computed свойства
     isAuthenticated,
     isTrainer,
+
+    // Методы
     login,
     register,
     logout,
@@ -179,5 +252,6 @@ export const useAuth = () => {
     updateProfile,
     clearError,
     initAuth,
+    refreshTokens,
   };
 };

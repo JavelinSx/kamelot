@@ -24,7 +24,7 @@
               </span>
             </div>
             <UBadge variant="soft" color="gray" size="sm">
-              {{ category.count }}
+              {{ category.postsCount }}
             </UBadge>
           </label>
         </div>

@@ -23,8 +23,8 @@
           </h3>
           <div class="mt-1 text-xs font-subheading font-semibold uppercase tracking-wider">
             <span class="text-red-500 font-bold drop-shadow-md">ВОИН</span>
-            <span class="text-gray-300 ml-1 drop-shadow-sm">{{ getPrimarySpecialization(trainer.specialization)
-              }}</span>
+            <span class="text-gray-300 ml-1 drop-shadow-sm">{{ getPrimarySpecialization(trainer.specializations)
+            }}</span>
           </div>
         </div>
 
@@ -40,9 +40,9 @@
               class="px-2 py-1 bg-red-600/90 backdrop-blur-sm text-white text-xs font-bold border border-red-700/50 shadow-lg font-subheading uppercase">
               <span>{{ getWorkoutTypeLabel(specialization) }}</span>
             </div>
-            <div v-if="trainer.specialization.length > maxDisplayedSpecializations"
+            <div v-if="trainer.specializations.length > maxDisplayedSpecializations"
               class="px-2 py-1 bg-gray-700/90 backdrop-blur-sm border border-gray-600/50 text-white text-xs font-bold font-subheading uppercase">
-              +{{ trainer.specialization.length - maxDisplayedSpecializations }}
+              +{{ trainer.specializations.length - maxDisplayedSpecializations }}
             </div>
           </div>
         </div>
@@ -199,7 +199,7 @@ const emit = defineEmits<Emits>()
 
 // Вычисляемые свойства
 const displayedSpecializations = computed(() =>
-  props.trainer.specialization.slice(0, props.maxDisplayedSpecializations)
+  props.trainer.specializations.slice(0, props.maxDisplayedSpecializations)
 )
 
 const estimatedClients = computed(() => {

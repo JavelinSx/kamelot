@@ -1,68 +1,118 @@
-// types/calendar.ts
-import type { CalendarDate } from "@internationalized/date";
-import type { WorkoutType } from "./index";
+// types/calendar.ts - Типы для календаря и его UI
 
-// Основные интерфейсы календаря
+import type { ScheduleItem, ScheduleStatus, WorkoutType } from "./index";
+
+// ========================================
+// ОСНОВНЫЕ ТИПЫ КАЛЕНДАРЯ
+// ========================================
+
+export type CalendarView = "month" | "week" | "day" | "agenda";
+
 export interface CalendarEvent {
   id: number;
   title: string;
-  startTime: string;
-  endTime: string;
+  start: Date;
+  end: Date;
   type: WorkoutType;
-  status: EventStatus;
-  description?: string;
-  instructor?: {
-    id: number;
-    firstName: string;
-    lastName: string;
-    avatar?: string;
-  };
-  participants?: CalendarParticipant[];
-  maxParticipants: number;
-  currentParticipants: number;
-  isUserBooked?: boolean;
-  canBook?: boolean;
-  canCancel?: boolean;
+  trainer: string;
+  status: ScheduleStatus;
+  isBooked: boolean;
+  availableSpots: number;
+  maxSpots: number;
   color?: string;
   backgroundColor?: string;
   borderColor?: string;
+  textColor?: string;
+  extendedProps?: {
+    scheduleItem: ScheduleItem;
+    canBook: boolean;
+    canCancel: boolean;
+    description?: string;
+    location?: string;
+    price?: number;
+  };
 }
 
-export interface CalendarParticipant {
-  id: number;
-  firstName: string;
-  lastName: string;
-  avatar?: string;
-  bookedAt: string;
-  status: "confirmed" | "pending" | "cancelled";
-}
+// ========================================
+// КОНФИГУРАЦИЯ КАЛЕНДАРЯ
+// ========================================
 
-export type EventStatus =
-  | "scheduled"
-  | "booked"
-  | "completed"
-  | "cancelled"
-  | "no-show";
-
-export type CalendarView = "month" | "week" | "day";
-
-// Конфигурация календаря
 export interface CalendarConfig {
   view: CalendarView;
   locale: string;
   timezone: string;
-  firstDayOfWeek: 0 | 1 | 2 | 3 | 4 | 5 | 6; // 0 = воскресенье, 1 = понедельник
+  firstDayOfWeek: 0 | 1 | 2 | 3 | 4 | 5 | 6; // 0 = воскресенье
   businessHours: BusinessHours;
-  eventColors: Record<WorkoutType, EventColorScheme>;
+  display: CalendarDisplay;
   features: CalendarFeatures;
 }
 
 export interface BusinessHours {
   start: string; // "08:00"
   end: string; // "22:00"
-  days: number[]; // [1,2,3,4,5,6,0] понедельник-воскресенье
-  timezone: string;
+  days: number[]; // [1,2,3,4,5,6] пн-сб
 }
+
+export interface CalendarDisplay {
+  showWeekends: boolean;
+  showWeekNumbers: boolean;
+  showTime: boolean;
+  timeFormat: "12h" | "24h";
+  dayMaxEvents: number;
+  eventLimit: boolean;
+  moreLinkText: string;
+  slotDuration: number; // минут
+  slotHeight: number; // пикселей
+}
+
+export interface CalendarFeatures {
+  booking: boolean;
+  cancellation: boolean;
+  eventDetails: boolean;
+  dateNavigation: boolean;
+  viewSwitching: boolean;
+  export: boolean;
+  print: boolean;
+}
+
+// ========================================
+// ФИЛЬТРЫ КАЛЕНДАРЯ
+// ========================================
+
+export interface CalendarFilters {
+  status?: ScheduleStatus[];
+  types?: WorkoutType[];
+  trainers?: number[];
+  dateRange?: {
+    start: Date;
+    end: Date;
+  };
+  availability?: "available" | "full" | "any";
+  userBookings?: "my-bookings" | "not-booked" | "any";
+  timeRange?: {
+    start: string; // "09:00"
+    end: string; // "18:00"
+  };
+}
+
+// ========================================
+// СОСТОЯНИЕ КАЛЕНДАРЯ
+// ========================================
+
+export interface CalendarState {
+  currentDate: Date;
+  selectedDate?: Date;
+  selectedEvents: CalendarEvent[];
+  view: CalendarView;
+  filters: CalendarFilters;
+  loading: boolean;
+  error?: string;
+  events: CalendarEvent[];
+}
+
+// ========================================
+// ЦВЕТОВЫЕ СХЕМЫ
+// ========================================
 
 export interface EventColorScheme {
   primary: string;
@@ -71,312 +121,175 @@ export interface EventColorScheme {
   text: string;
 }
 
-export interface CalendarFeatures {
-  booking: boolean;
-  cancellation: boolean;
-  multipleSelection: boolean;
-  dateRangeSelection: boolean;
-  eventDetails: boolean;
-  instructorInfo: boolean;
-  participantsList: boolean;
-  notifications: boolean;
-  export: boolean;
-}
-
-// Фильтры и поиск
-export interface CalendarFilters {
-  status?: EventStatus[];
-  types?: WorkoutType[];
-  instructors?: number[];
-  dateRange?: {
-    start: CalendarDate;
-    end: CalendarDate;
+export interface CalendarTheme {
+  colorScheme: "light" | "dark" | "auto";
+  primaryColor: string;
+  eventColors: Record<WorkoutType, EventColorScheme>;
+  customColors?: {
+    background: string;
+    text: string;
+    border: string;
+    accent: string;
   };
-  availability?: "available" | "full" | "any";
-  userBookings?: "my-bookings" | "not-booked" | "any";
 }
 
-export interface CalendarSearchParams {
-  query?: string;
-  filters?: CalendarFilters;
-  sortBy?: "date" | "type" | "instructor" | "availability";
-  sortOrder?: "asc" | "desc";
-  limit?: number;
-  offset?: number;
+// ========================================
+// ВЗАИМОДЕЙСТВИЕ С КАЛЕНДАРЕМ
+// ========================================
+
+export interface CalendarEventHandlers {
+  onDateSelect?: (date: Date) => void;
+  onEventClick?: (event: CalendarEvent) => void;
+  onEventHover?: (event: CalendarEvent) => void;
+  onSlotSelect?: (slotInfo: { start: Date; end: Date }) => void;
+  onViewChange?: (view: CalendarView) => void;
+  onNavigate?: (date: Date) => void;
+  onBook?: (event: CalendarEvent) => void;
+  onCancel?: (event: CalendarEvent) => void;
 }
 
-// Данные дня в календаре
+export interface CalendarAction {
+  type:
+    | "select-date"
+    | "select-event"
+    | "book-event"
+    | "cancel-booking"
+    | "change-view";
+  payload: any;
+  timestamp: Date;
+}
+
+// ========================================
+// НАВИГАЦИЯ И ОТОБРАЖЕНИЕ
+// ========================================
+
+export interface CalendarNavigation {
+  showToday: boolean;
+  showPrevNext: boolean;
+  showViewSwitcher: boolean;
+  showDatePicker: boolean;
+  allowNavigation: boolean;
+  minDate?: Date;
+  maxDate?: Date;
+}
+
+export interface CalendarDate {
+  year: number;
+  month: number;
+  day: number;
+}
+
+export interface CalendarMonth {
+  year: number;
+  month: number;
+  weeks: CalendarWeek[];
+  events: CalendarEvent[];
+}
+
+export interface CalendarWeek {
+  weekNumber: number;
+  days: CalendarDay[];
+}
+
 export interface CalendarDay {
-  date: CalendarDate;
-  dayNumber: number;
+  date: Date;
   isCurrentMonth: boolean;
   isToday: boolean;
   isSelected: boolean;
   isWeekend: boolean;
-  isDisabled: boolean;
+  isHoliday?: boolean;
   events: CalendarEvent[];
-  hasEvents: boolean;
-  isFullyBooked: boolean;
+  availableSlots: number;
+  workingHours?: {
+    start: string;
+    end: string;
+  };
 }
 
-// События календаря
-export interface CalendarEventHandlers {
-  onDateSelect: (date: CalendarDate) => void;
-  onEventClick: (event: CalendarEvent) => void;
-  onEventBook: (event: CalendarEvent) => Promise<boolean>;
-  onEventCancel: (event: CalendarEvent) => Promise<boolean>;
-  onViewChange: (view: CalendarView) => void;
-  onNavigate: (direction: "prev" | "next" | "today") => void;
-  onFilterChange: (filters: CalendarFilters) => void;
+// ========================================
+// ВРЕМЕННЫЕ СЛОТЫ
+// ========================================
+
+export interface DayTimeSlots {
+  date: Date;
+  slots: TimeSlot[];
+  workingHours: {
+    start: string;
+    end: string;
+  };
 }
 
-// Состояние календаря
-export interface CalendarState {
-  selectedDate: CalendarDate;
-  currentView: CalendarView;
-  isLoading: boolean;
-  error: string | null;
-  events: CalendarEvent[];
-  filteredEvents: CalendarEvent[];
-  activeFilters: CalendarFilters;
-  selectedEvent: CalendarEvent | null;
-  config: CalendarConfig;
+// ========================================
+// ЭКСПОРТ И ПЕЧАТЬ
+// ========================================
+
+export interface CalendarExportOptions {
+  format: "ics" | "csv" | "json" | "pdf";
+  dateRange: {
+    start: Date;
+    end: Date;
+  };
+  includeFields: Array<keyof CalendarEvent>;
+  filters?: CalendarFilters;
+  timezone?: string;
 }
 
-// API интерфейсы
-export interface CalendarAPI {
-  getEvents: (params: CalendarSearchParams) => Promise<CalendarEvent[]>;
-  getUserWorkouts: (
-    userId: number,
-    params: CalendarSearchParams
-  ) => Promise<CalendarEvent[]>;
-  bookEvent: (
-    eventId: number
-  ) => Promise<{ success: boolean; event: CalendarEvent }>;
-  cancelBooking: (
-    eventId: number
-  ) => Promise<{ success: boolean; event: CalendarEvent }>;
-  createEvent: (event: Partial<CalendarEvent>) => Promise<CalendarEvent>;
-  updateEvent: (
-    eventId: number,
-    updates: Partial<CalendarEvent>
-  ) => Promise<CalendarEvent>;
-  deleteEvent: (eventId: number) => Promise<boolean>;
+export interface CalendarPrintOptions {
+  view: CalendarView;
+  dateRange: {
+    start: Date;
+    end: Date;
+  };
+  showDetails: boolean;
+  showColors: boolean;
+  pageSize: "A4" | "A3" | "Letter";
+  orientation: "portrait" | "landscape";
 }
 
-// Интеграция с внешними календарями
-export interface ExternalCalendarProvider {
-  name: "google" | "outlook" | "apple" | "icalendar";
-  isConnected: boolean;
-  syncEnabled: boolean;
-  lastSync?: string;
-  config: Record<string, any>;
-}
+// ========================================
+// ПОЛЬЗОВАТЕЛЬСКИЕ НАСТРОЙКИ
+// ========================================
 
-export interface ExternalCalendarEvent {
-  externalId: string;
-  provider: string;
-  title: string;
-  start: string;
-  end: string;
-  description?: string;
-  location?: string;
-  attendees?: string[];
-  isRecurring: boolean;
-  recurrenceRule?: string;
-}
-
-// Статистика и аналитика
-export interface CalendarStats {
-  totalEvents: number;
-  bookedEvents: number;
-  completedEvents: number;
-  cancelledEvents: number;
-  utilizationRate: number;
-  popularTypes: Array<{
-    type: WorkoutType;
-    count: number;
-    percentage: number;
-  }>;
-  busyDays: CalendarDate[];
-  peakHours: Array<{
-    hour: number;
-    count: number;
-  }>;
-}
-
-// Уведомления
-export interface CalendarNotification {
-  id: string;
-  type: "booking" | "cancellation" | "reminder" | "change";
-  eventId: number;
-  userId: number;
-  title: string;
-  message: string;
-  scheduledFor: string;
-  status: "pending" | "sent" | "failed";
-  createdAt: string;
-}
-
-// Настройки пользователя
 export interface UserCalendarPreferences {
   userId: number;
   defaultView: CalendarView;
   timezone: string;
   locale: string;
+  theme: CalendarTheme;
+  features: Partial<CalendarFeatures>;
+  filters: Partial<CalendarFilters>;
   notifications: {
-    email: boolean;
-    push: boolean;
-    sms: boolean;
+    enabled: boolean;
     reminderMinutes: number[];
-  };
-  theme: {
-    colorScheme: "light" | "dark" | "auto";
-    primaryColor: string;
-    eventColors: Record<WorkoutType, EventColorScheme>;
-  };
-  features: {
-    showWeekends: boolean;
-    show24Hour: boolean;
-    showEventDetails: boolean;
-    autoBook: boolean;
-    allowCancellation: boolean;
+    channels: ("email" | "push" | "sms")[];
   };
 }
 
-// Шаблоны событий
-export interface EventTemplate {
-  id: number;
-  name: string;
-  type: WorkoutType;
-  duration: number;
-  maxParticipants: number;
-  description?: string;
-  defaultInstructor?: number;
-  recurrence?: {
-    frequency: "daily" | "weekly" | "monthly";
-    interval: number;
-    daysOfWeek?: number[];
-    endDate?: CalendarDate;
-    occurrences?: number;
+// ========================================
+// МОБИЛЬНАЯ АДАПТАЦИЯ
+// ========================================
+
+export interface CalendarMobileConfig {
+  compactMode: boolean;
+  swipeNavigation: boolean;
+  touchGestures: boolean;
+  responsiveBreakpoints: {
+    mobile: number;
+    tablet: number;
+    desktop: number;
   };
-  isActive: boolean;
-  createdBy: number;
-  createdAt: string;
-  updatedAt: string;
+  mobileViews: CalendarView[];
 }
 
-// Экспорт данных
-export interface CalendarExportOptions {
-  format: "ics" | "csv" | "json" | "pdf";
-  dateRange: {
-    start: CalendarDate;
-    end: CalendarDate;
-  };
-  includeFields: Array<keyof CalendarEvent>;
-  filters?: CalendarFilters;
-}
+// ========================================
+// ПРОИЗВОДИТЕЛЬНОСТЬ
+// ========================================
 
-export interface CalendarExportResult {
-  filename: string;
-  data: string | Uint8Array;
-  mimeType: string;
-  size: number;
-}
-
-// Валидация
-export interface CalendarValidationRules {
-  event: {
-    minDuration: number; // минуты
-    maxDuration: number;
-    minParticipants: number;
-    maxParticipants: number;
-    advanceBookingDays: number;
-    cancellationHours: number;
-  };
-  booking: {
-    maxBookingsPerDay: number;
-    maxBookingsPerWeek: number;
-    requiresApproval: boolean;
-  };
-  schedule: {
-    conflictResolution: "reject" | "warn" | "allow";
-    gapBetweenEvents: number; // минуты
-  };
-}
-
-// Утилиты для работы с календарем
-export interface CalendarUtils {
-  formatDate: (date: CalendarDate, format?: string) => string;
-  formatTime: (time: string, format?: "12h" | "24h") => string;
-  formatDuration: (minutes: number) => string;
-  getWeekStart: (date: CalendarDate) => CalendarDate;
-  getWeekEnd: (date: CalendarDate) => CalendarDate;
-  getMonthStart: (date: CalendarDate) => CalendarDate;
-  getMonthEnd: (date: CalendarDate) => CalendarDate;
-  isEventConflict: (event1: CalendarEvent, event2: CalendarEvent) => boolean;
-  calculateEventDuration: (start: string, end: string) => number;
-  isWithinBusinessHours: (
-    time: string,
-    businessHours: BusinessHours
-  ) => boolean;
-  generateRecurringEvents: (
-    template: EventTemplate,
-    dateRange: { start: CalendarDate; end: CalendarDate }
-  ) => CalendarEvent[];
-}
-
-// Интеграция с компонентами NuxtUI
-export interface NuxtUICalendarProps {
-  modelValue?:
-    | CalendarDate
-    | CalendarDate[]
-    | { start: CalendarDate; end: CalendarDate };
-  multiple?: boolean;
-  range?: boolean;
-  numberOfMonths?: number;
-  minValue?: CalendarDate;
-  maxValue?: CalendarDate;
-  isDateDisabled?: (date: CalendarDate) => boolean;
-  locale?: string;
-  color?: string;
-  size?: "xs" | "sm" | "md" | "lg" | "xl";
-  ui?: Record<string, any>;
-}
-
-export interface CalendarSlotProps {
-  day: CalendarDate;
-  isSelected: boolean;
-  isToday: boolean;
-  isDisabled: boolean;
-  events: CalendarEvent[];
-}
-
-// Расширенные типы для интеграции с вашим проектом
-export interface MartialArtsCalendarEvent extends CalendarEvent {
-  workout: {
-    id: number;
-    name: string;
-    type: WorkoutType;
-    duration: number;
-    difficulty: "beginner" | "intermediate" | "advanced";
-    description?: string;
-    requirements?: string[];
-    equipment?: string[];
-  };
-  dojo?: {
-    id: number;
-    name: string;
-    address: string;
-  };
-  belt?: {
-    required?: string;
-    awarded?: string[];
-  };
-  specialEvent?: {
-    isCompetition: boolean;
-    isExam: boolean;
-    isSeminar: boolean;
-    certificate?: boolean;
-  };
+export interface CalendarPerformance {
+  virtualScrolling: boolean;
+  lazyLoading: boolean;
+  eventBatching: boolean;
+  renderOptimization: boolean;
+  maxEventsPerDay: number;
+  cacheTimeout: number; // минут
 }

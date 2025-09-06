@@ -105,7 +105,7 @@
               </div>
 
               <div>
-                <h4 class="font-medium text-white">{{ workout.workout.name }}</h4>
+                <h4 class="font-medium text-white">{{ workout.workout.title }}</h4>
                 <p class="text-sm text-gray-400">
                   {{ formatTime(workout.startTime) }} - {{ formatTime(workout.endTime) }}
                 </p>
@@ -134,7 +134,7 @@
       <UCard v-if="selectedWorkout" class="bg-gray-900 border-gray-700">
         <template #header>
           <div class="flex items-center justify-between">
-            <h3 class="text-lg font-semibold text-white">{{ selectedWorkout.workout.name }}</h3>
+            <h3 class="text-lg font-semibold text-white">{{ selectedWorkout.workout.title }}</h3>
             <UButton color="gray" variant="ghost" icon="i-heroicons-x-mark" @click="workoutModalOpen = false" />
           </div>
         </template>
@@ -157,14 +157,14 @@
             <div>
               <span class="text-gray-400">Время:</span>
               <p class="text-white">{{ formatTime(selectedWorkout.startTime) }} - {{ formatTime(selectedWorkout.endTime)
-                }}
+              }}
               </p>
             </div>
             <div>
               <span class="text-gray-400">Инструктор:</span>
               <p class="text-white">{{ selectedWorkout.trainer?.user.firstName }} {{
                 selectedWorkout.trainer?.user.lastName
-                }}</p>
+              }}</p>
             </div>
             <div>
               <span class="text-gray-400">Длительность:</span>
@@ -201,11 +201,9 @@
 </template>
 
 <script setup lang="ts">
-import type { ScheduleItem, WorkoutType } from '~/types'
+import type { BadgeColor, ScheduleItem, WorkoutType } from '~/types'
 import {
-  getMartialArtColor,
   getWorkoutTypeLabel,
-  type BadgeColor
 } from '~/types/martial-arts'
 
 // Props (используем обычные Date вместо CalendarDate)

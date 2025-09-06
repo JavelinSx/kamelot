@@ -1,379 +1,415 @@
-// utils/martial-arts.ts - ЦЕНТРАЛЬНОЕ МЕСТО ДЛЯ ВСЕХ УТИЛИТ ЕДИНОБОРСТВ
-import type { WorkoutType } from "~/types";
+// utils/martial-arts.ts - Централизованные утилиты для всех типов данных
 
-// Типы цветов для UBadge в NuxtUI
-export type BadgeColor =
-  | "primary"
-  | "red"
-  | "orange"
-  | "amber"
-  | "yellow"
-  | "lime"
-  | "green"
-  | "emerald"
-  | "teal"
-  | "cyan"
-  | "sky"
-  | "blue"
-  | "indigo"
-  | "violet"
-  | "purple"
-  | "fuchsia"
-  | "pink"
-  | "rose"
-  | "gray"
-  | "white"
-  | "black";
+import type {
+  FitnessLevel,
+  ScheduleStatus,
+  WorkoutDifficulty,
+  WorkoutType,
+} from "@/types";
+import type { BadgeColor } from "@/types/constants";
+import {
+  DIFFICULTY_COLORS,
+  DIFFICULTY_LABELS,
+  FITNESS_LEVEL_LABELS,
+  SCHEDULE_STATUS_COLORS,
+  SCHEDULE_STATUS_LABELS,
+  WORKOUT_TYPE_COLORS,
+  WORKOUT_TYPE_EMOJI,
+  WORKOUT_TYPE_ICON_BACKGROUNDS,
+  WORKOUT_TYPE_ICONS,
+  WORKOUT_TYPE_LABELS,
+} from "@/types/constants";
 
 // ========================================
-// ОСНОВНЫЕ КОНСТАНТЫ (ТОЛЬКО ТО ЧТО НУЖНО)
+// ТИПЫ ТРЕНИРОВОК
 // ========================================
 
-export const MARTIAL_ARTS_CATEGORIES = {
-  // Ударные единоборства
-  striking: {
-    label: "Ударные единоборства",
-    types: ["boxing", "kickboxing"] as const,
-    description:
-      "Боевые искусства, основанные на ударной технике руками и ногами",
-    icon: "👊",
-    color: "red" as BadgeColor,
-  },
-
-  // Борьба и грэпплинг
-  grappling: {
-    label: "Борьба и грэпплинг",
-    types: ["grappling", "bjj", "wrestling"] as const,
-    description:
-      "Единоборства, основанные на захватах, бросках и борьбе в партере",
-    icon: "🤼",
-    color: "blue" as BadgeColor,
-  },
-
-  // Смешанные единоборства
-  mixed: {
-    label: "Смешанные единоборства",
-    types: ["mma", "pankration"] as const,
-    description: "Комбинация ударной техники, борьбы и других дисциплин",
-    icon: "🥊",
-    color: "purple" as BadgeColor,
-  },
-} as const;
-
-// Плоский список всех типов
-export const ALL_WORKOUT_TYPES = Object.values(MARTIAL_ARTS_CATEGORIES).flatMap(
-  (category) => category.types
-);
-
-// Маппинг типов к лейблам
-export const WORKOUT_TYPE_LABELS: Record<WorkoutType, string> = {
-  boxing: "Бокс",
-  kickboxing: "Кикбоксинг",
-  grappling: "Грэпплинг",
-  bjj: "БЖЖ",
-  wrestling: "Борьба",
-  mma: "ММА",
-  pankration: "Панкратион",
-};
-
-// Маппинг типов к цветам категорий (ИСПРАВЛЕНО - возвращает BadgeColor)
-export const WORKOUT_TYPE_COLORS: Record<WorkoutType, BadgeColor> = {
-  boxing: "red",
-  kickboxing: "red",
-  grappling: "blue",
-  bjj: "blue",
-  wrestling: "blue",
-  mma: "purple",
-  pankration: "purple",
-};
-
-// Уровни сложности
-export const DIFFICULTY_LEVELS = {
-  easy: { label: "Легкий", color: "green" as BadgeColor },
-  medium: { label: "Средний", color: "yellow" as BadgeColor },
-  hard: { label: "Сложный", color: "red" as BadgeColor },
-} as const;
-
-// Статусы расписания
-export const SCHEDULE_STATUSES = {
-  scheduled: { label: "Запланирована", color: "blue" as BadgeColor },
-  in_progress: { label: "Идет", color: "yellow" as BadgeColor },
-  completed: { label: "Завершена", color: "green" as BadgeColor },
-  cancelled: { label: "Отменена", color: "red" as BadgeColor },
-} as const;
-
 /**
- * Получить цвет для типа единоборства (гибкая версия)
- */
-export const getMartialArtColor = (type: string): BadgeColor => {
-  return WORKOUT_TYPE_COLORS[type as WorkoutType] || "gray";
-};
-
-/**
- * Получить лейбл для типа тренировки (гибкая версия)
+ * Получить лейбл для типа тренировки
  */
 export const getWorkoutTypeLabel = (type: string): string => {
   return WORKOUT_TYPE_LABELS[type as WorkoutType] || type;
 };
 
 /**
+ * Получить цвет для типа единоборства
+ */
+export const getWorkoutTypeColor = (type: string): BadgeColor => {
+  return WORKOUT_TYPE_COLORS[type as WorkoutType] || "gray";
+};
+
+/**
+ * Получить иконку Heroicons для типа тренировки
+ */
+export const getWorkoutTypeIcon = (type: string): string => {
+  return WORKOUT_TYPE_ICONS[type as WorkoutType] || "i-heroicons-academic-cap";
+};
+
+/**
+ * Получить emoji для типа тренировки
+ */
+export const getWorkoutTypeEmoji = (type: string): string => {
+  return WORKOUT_TYPE_EMOJI[type as WorkoutType] || "🥋";
+};
+
+/**
+ * Получить CSS класс для фона иконки типа тренировки
+ */
+export const getWorkoutTypeIconBg = (type: string): string => {
+  return WORKOUT_TYPE_ICON_BACKGROUNDS[type as WorkoutType] || "bg-gray-600";
+};
+
+// ========================================
+// СЛОЖНОСТЬ ТРЕНИРОВОК
+// ========================================
+
+/**
  * Получить лейбл для уровня сложности
  */
 export const getDifficultyLabel = (difficulty: string): string => {
-  return (
-    DIFFICULTY_LEVELS[difficulty as keyof typeof DIFFICULTY_LEVELS]?.label ||
-    difficulty
-  );
+  return DIFFICULTY_LABELS[difficulty as WorkoutDifficulty] || difficulty;
 };
 
 /**
  * Получить цвет для уровня сложности
  */
 export const getDifficultyColor = (difficulty: string): BadgeColor => {
-  return (
-    DIFFICULTY_LEVELS[difficulty as keyof typeof DIFFICULTY_LEVELS]?.color ||
-    "gray"
-  );
+  return DIFFICULTY_COLORS[difficulty as WorkoutDifficulty] || "gray";
 };
+
+// ========================================
+// СТАТУСЫ РАСПИСАНИЯ
+// ========================================
 
 /**
  * Получить лейбл для статуса расписания
  */
 export const getStatusLabel = (status: string): string => {
-  return (
-    SCHEDULE_STATUSES[status as keyof typeof SCHEDULE_STATUSES]?.label || status
-  );
+  return SCHEDULE_STATUS_LABELS[status as ScheduleStatus] || status;
 };
 
 /**
  * Получить цвет для статуса расписания
  */
 export const getStatusColor = (status: string): BadgeColor => {
-  return (
-    SCHEDULE_STATUSES[status as keyof typeof SCHEDULE_STATUSES]?.color || "gray"
-  );
+  return SCHEDULE_STATUS_COLORS[status as ScheduleStatus] || "gray";
 };
 
+// ========================================
+// УРОВНИ ФИЗИЧЕСКОЙ ПОДГОТОВКИ
+// ========================================
+
 /**
- * Получить категорию для типа тренировки
+ * Получить лейбл для уровня физической подготовки
  */
-export const getCategoryForWorkoutType = (type: WorkoutType) => {
-  // Просто проверяем в каждой категории напрямую
-  if (MARTIAL_ARTS_CATEGORIES.striking.types.includes(type as any)) {
-    return {
-      key: "striking",
-      ...MARTIAL_ARTS_CATEGORIES.striking,
-    };
-  }
-
-  if (MARTIAL_ARTS_CATEGORIES.grappling.types.includes(type as any)) {
-    return {
-      key: "grappling",
-      ...MARTIAL_ARTS_CATEGORIES.grappling,
-    };
-  }
-
-  if (MARTIAL_ARTS_CATEGORIES.mixed.types.includes(type as any)) {
-    return {
-      key: "mixed",
-      ...MARTIAL_ARTS_CATEGORIES.mixed,
-    };
-  }
-
-  return null;
+export const getFitnessLevelLabel = (level: string): string => {
+  return FITNESS_LEVEL_LABELS[level as FitnessLevel] || level;
 };
 
 /**
- * Получить все типы тренировок по категории
+ * Получить цвет для уровня физической подготовки
+ */
+export const getFitnessLevelColor = (level: string): BadgeColor => {
+  const colors = {
+    beginner: "green" as BadgeColor,
+    intermediate: "yellow" as BadgeColor,
+    advanced: "red" as BadgeColor,
+  };
+  return colors[level as FitnessLevel] || "gray";
+};
+
+// ========================================
+// РЕЙТИНГИ И ПРОЦЕНТЫ
+// ========================================
+
+/**
+ * Получить цвет на основе рейтинга (1-5 звезд)
+ */
+export const getRatingColor = (rating: number): BadgeColor => {
+  if (rating >= 4.5) return "green";
+  if (rating >= 4.0) return "lime";
+  if (rating >= 3.5) return "yellow";
+  if (rating >= 3.0) return "orange";
+  return "red";
+};
+
+/**
+ * Получить цвет на основе процентного значения
+ */
+export const getPercentageColor = (percentage: number): BadgeColor => {
+  if (percentage >= 90) return "green";
+  if (percentage >= 75) return "lime";
+  if (percentage >= 60) return "yellow";
+  if (percentage >= 40) return "orange";
+  return "red";
+};
+
+// ========================================
+// БЕЗОПАСНАЯ ТИПИЗАЦИЯ
+// ========================================
+
+/**
+ * Безопасное приведение к BadgeColor с fallback
+ */
+export const ensureBadgeColor = (
+  color: any,
+  fallback: BadgeColor = "emerald"
+): BadgeColor => {
+  const validColors: BadgeColor[] = [
+    "primary",
+    "red",
+    "orange",
+    "amber",
+    "yellow",
+    "lime",
+    "green",
+    "emerald",
+    "teal",
+    "cyan",
+    "sky",
+    "blue",
+    "indigo",
+    "violet",
+    "purple",
+    "fuchsia",
+    "pink",
+    "rose",
+  ];
+  return validColors.includes(color) ? color : fallback;
+};
+
+// ========================================
+// КАТЕГОРИИ ЕДИНОБОРСТВ
+// ========================================
+
+const CATEGORY_DEFINITIONS = {
+  striking: {
+    label: "Ударные единоборства",
+    types: ["boxing", "kickboxing"] as WorkoutType[],
+    description:
+      "Боевые искусства, основанные на ударной технике руками и ногами",
+    icon: "👊",
+    color: "red" as BadgeColor,
+  },
+  grappling: {
+    label: "Борьба и грэпплинг",
+    types: ["grappling", "bjj", "wrestling"] as WorkoutType[],
+    description:
+      "Единоборства, основанные на захватах, бросках и борьбе в партере",
+    icon: "🤼",
+    color: "blue" as BadgeColor,
+  },
+  mixed: {
+    label: "Смешанные единоборства",
+    types: ["mma", "pankration"] as WorkoutType[],
+    description: "Комбинация ударной техники, борьбы и других дисциплин",
+    icon: "🥊",
+    color: "purple" as BadgeColor,
+  },
+};
+
+type CategoryKey = keyof typeof CATEGORY_DEFINITIONS;
+
+/**
+ * Получить категорию для типа единоборства
+ */
+export const getMartialArtCategory = (type: WorkoutType): CategoryKey => {
+  for (const [categoryKey, category] of Object.entries(CATEGORY_DEFINITIONS)) {
+    if (category.types.includes(type)) {
+      return categoryKey as CategoryKey;
+    }
+  }
+  return "mixed"; // fallback
+};
+
+/**
+ * Получить все типы тренировок для категории
  */
 export const getWorkoutTypesByCategory = (
-  categoryKey: keyof typeof MARTIAL_ARTS_CATEGORIES
-) => {
-  return MARTIAL_ARTS_CATEGORIES[categoryKey]?.types || [];
+  category: CategoryKey
+): WorkoutType[] => {
+  return CATEGORY_DEFINITIONS[category].types;
 };
 
 /**
- * Проверить, относится ли тип к ударным единоборствам
+ * Получить информацию о категории
  */
-export const isStrikingArt = (type: WorkoutType): boolean => {
-  return MARTIAL_ARTS_CATEGORIES.striking.types.includes(type as any);
+export const getCategoryInfo = (category: CategoryKey) => {
+  return CATEGORY_DEFINITIONS[category];
 };
 
 /**
- * Проверить, относится ли тип к борьбе/грэпплингу
+ * Сгруппировать типы тренировок по категориям
  */
-export const isGrapplingArt = (type: WorkoutType): boolean => {
-  return MARTIAL_ARTS_CATEGORIES.grappling.types.includes(type as any);
-};
+export const groupWorkoutTypesByCategory = (types: WorkoutType[]) => {
+  const grouped: Record<CategoryKey, WorkoutType[]> = {
+    striking: [],
+    grappling: [],
+    mixed: [],
+  };
 
-/**
- * Проверить, относится ли тип к смешанным единоборствам
- */
-export const isMixedArt = (type: WorkoutType): boolean => {
-  return MARTIAL_ARTS_CATEGORIES.mixed.types.includes(type as any);
-};
+  // Группируем типы
+  types.forEach((type) => {
+    const category = getMartialArtCategory(type);
+    grouped[category].push(type);
+  });
 
-/**
- * Получить категорию для типа тренировки (возвращает ключ категории)
- */
-export const getMartialArtsCategory = (
-  workoutType: WorkoutType
-): keyof typeof MARTIAL_ARTS_CATEGORIES => {
-  // Создаем мапу для быстрого поиска
-  const categoryMap: Record<WorkoutType, keyof typeof MARTIAL_ARTS_CATEGORIES> =
-    {
-      // Striking
-      boxing: "striking",
-      kickboxing: "striking",
-      // Grappling
-      grappling: "grappling",
-      bjj: "grappling",
-      wrestling: "grappling",
-      // Mixed
-      mma: "mixed",
-      pankration: "mixed",
-    };
-
-  return categoryMap[workoutType] || "striking"; // fallback к striking
-};
-
-/**
- * Получить данные категории по её ключу
- */
-export const getCategoryData = (
-  categoryKey: keyof typeof MARTIAL_ARTS_CATEGORIES
-) => {
-  return MARTIAL_ARTS_CATEGORIES[categoryKey];
-};
-
-/**
- * Получить иконку категории для типа тренировки
- */
-export const getCategoryIcon = (workoutType: WorkoutType): string => {
-  const category = getMartialArtsCategory(workoutType);
-  return MARTIAL_ARTS_CATEGORIES[category].icon;
-};
-
-/**
- * Получить все типы тренировок в виде плоского массива
- */
-export const getAllWorkoutTypes = (): WorkoutType[] => {
-  return ALL_WORKOUT_TYPES as WorkoutType[];
+  // Возвращаем только непустые категории
+  return Object.entries(grouped)
+    .filter(([_, categoryTypes]) => categoryTypes.length > 0)
+    .map(([categoryKey, categoryTypes]) => {
+      const info = CATEGORY_DEFINITIONS[categoryKey as CategoryKey];
+      return {
+        key: categoryKey as CategoryKey,
+        workoutTypes: categoryTypes,
+        name: info.label,
+        description: info.description,
+        icon: info.icon,
+        color: info.color,
+      };
+    });
 };
 
 // ========================================
-// УТИЛИТЫ ДЛЯ UI КОМПОНЕНТОВ
+// ВАЛИДАЦИЯ
 // ========================================
 
-// Типы цветов для UProgress (ограниченный набор)
-export type ProgressColor =
-  | "blue"
-  | "primary"
-  | "red"
-  | "orange"
-  | "amber"
-  | "yellow"
-  | "lime"
-  | "green"
-  | "emerald"
-  | "teal"
-  | "cyan"
-  | "sky"
-  | "indigo"
-  | "violet"
-  | "purple"
-  | "fuchsia"
-  | "pink"
-  | "rose";
-
 /**
- * Получить совместимый цвет для UProgress
- * UProgress поддерживает не все цвета BadgeColor, поэтому делаем маппинг
+ * Проверить, является ли строка валидным типом тренировки
  */
-export const getProgressColor = (color: BadgeColor): ProgressColor => {
-  const progressColorMap: Record<BadgeColor, ProgressColor> = {
-    primary: "primary",
-    red: "red",
-    orange: "orange",
-    amber: "amber",
-    yellow: "yellow",
-    lime: "lime",
-    green: "green",
-    emerald: "emerald",
-    teal: "teal",
-    cyan: "cyan",
-    sky: "sky",
-    blue: "blue",
-    indigo: "indigo",
-    violet: "violet",
-    purple: "purple",
-    fuchsia: "fuchsia",
-    pink: "pink",
-    rose: "rose",
-    gray: "blue", // gray не поддерживается, используем blue
-    white: "blue", // white не поддерживается, используем blue
-    black: "blue", // black не поддерживается, используем blue
-  };
-
-  return progressColorMap[color] || "blue";
+export const isValidWorkoutType = (type: string): type is WorkoutType => {
+  return Object.keys(WORKOUT_TYPE_LABELS).includes(type);
 };
 
 /**
- * Получить CSS классы для иконок по цвету
+ * Получить безопасный тип тренировки с fallback
  */
-export const getIconColorClass = (color: BadgeColor): string => {
-  const colors: Record<BadgeColor, string> = {
-    primary: "text-blue-400",
-    red: "text-red-400",
-    orange: "text-orange-400",
-    amber: "text-amber-400",
-    yellow: "text-yellow-400",
-    lime: "text-lime-400",
-    green: "text-green-400",
-    emerald: "text-emerald-400",
-    teal: "text-teal-400",
-    cyan: "text-cyan-400",
-    sky: "text-sky-400",
-    blue: "text-blue-400",
-    indigo: "text-indigo-400",
-    violet: "text-violet-400",
-    purple: "text-purple-400",
-    fuchsia: "text-fuchsia-400",
-    pink: "text-pink-400",
-    rose: "text-rose-400",
-    gray: "text-gray-400",
-    white: "text-white",
-    black: "text-black",
-  };
-  return colors[color] || "text-blue-400";
+export const getSafeWorkoutType = (
+  type: string,
+  fallback: WorkoutType = "mma"
+): WorkoutType => {
+  return isValidWorkoutType(type) ? type : fallback;
+};
+
+// ========================================
+// ФОРМАТИРОВАНИЕ
+// ========================================
+
+/**
+ * Отформатировать список типов тренировок для отображения
+ */
+export const formatWorkoutTypesList = (
+  types: WorkoutType[],
+  options: {
+    maxItems?: number;
+    separator?: string;
+    showIcons?: boolean;
+    moreText?: string;
+  } = {}
+): string => {
+  const {
+    maxItems = 3,
+    separator = ", ",
+    showIcons = false,
+    moreText = "ещё",
+  } = options;
+
+  const displayTypes = types.slice(0, maxItems);
+  const remaining = types.length - maxItems;
+
+  const formatted = displayTypes
+    .map((type) => {
+      const label = getWorkoutTypeLabel(type);
+      const icon = showIcons ? getWorkoutTypeEmoji(type) : "";
+      return icon ? `${icon} ${label}` : label;
+    })
+    .join(separator);
+
+  if (remaining > 0) {
+    return `${formatted}${separator}+${remaining} ${moreText}`;
+  }
+
+  return formatted;
 };
 
 /**
- * Получить CSS классы для фона иконок по цвету
+ * Создать описание тренировки на основе типа
  */
-export const getIconBackgroundClass = (color: BadgeColor): string => {
-  const colors: Record<BadgeColor, string> = {
-    primary: "bg-blue-500/10",
-    red: "bg-red-500/10",
-    orange: "bg-orange-500/10",
-    amber: "bg-amber-500/10",
-    yellow: "bg-yellow-500/10",
-    lime: "bg-lime-500/10",
-    green: "bg-green-500/10",
-    emerald: "bg-emerald-500/10",
-    teal: "bg-teal-500/10",
-    cyan: "bg-cyan-500/10",
-    sky: "bg-sky-500/10",
-    blue: "bg-blue-500/10",
-    indigo: "bg-indigo-500/10",
-    violet: "bg-violet-500/10",
-    purple: "bg-purple-500/10",
-    fuchsia: "bg-fuchsia-500/10",
-    pink: "bg-pink-500/10",
-    rose: "bg-rose-500/10",
-    gray: "bg-gray-500/10",
-    white: "bg-white/10",
-    black: "bg-black/10",
-  };
-  return colors[color] || "bg-blue-500/10";
+export const generateWorkoutDescription = (type: WorkoutType): string => {
+  const category = getMartialArtCategory(type);
+  const categoryInfo = CATEGORY_DEFINITIONS[category];
+  const label = getWorkoutTypeLabel(type);
+
+  return `${label} - ${categoryInfo.description}`;
 };
+
+// ========================================
+// СТАТИСТИКА И АНАЛИТИКА
+// ========================================
+
+/**
+ * Подсчитать статистику по типам тренировок
+ */
+export const calculateWorkoutTypeStats = (
+  items: Array<{ type: WorkoutType; [key: string]: any }>
+) => {
+  const stats = items.reduce((acc, item) => {
+    const type = item.type;
+    if (!acc[type]) {
+      acc[type] = {
+        type,
+        label: getWorkoutTypeLabel(type),
+        color: getWorkoutTypeColor(type),
+        category: getMartialArtCategory(type),
+        count: 0,
+      };
+    }
+    acc[type].count++;
+    return acc;
+  }, {} as Record<WorkoutType, any>);
+
+  const sortedStats = Object.values(stats).sort((a, b) => b.count - a.count);
+  const groupedCategories = groupWorkoutTypesByCategory(
+    sortedStats.map((s) => s.type)
+  );
+
+  return {
+    byType: sortedStats,
+    byCategory: groupedCategories
+      .map((cat) => ({
+        key: cat.key,
+        name: cat.name,
+        description: cat.description,
+        icon: cat.icon,
+        color: cat.color,
+        workoutTypes: cat.workoutTypes,
+        count: cat.workoutTypes.reduce(
+          (sum, type) => sum + (stats[type]?.count || 0),
+          0
+        ),
+      }))
+      .sort((a, b) => b.count - a.count),
+    total: items.length,
+    uniqueTypes: Object.keys(stats).length,
+  };
+};
+
+// ========================================
+// ЭКСПОРТ КАТЕГОРИЙ (для совместимости)
+// ========================================
+
+export const MARTIAL_ARTS_CATEGORIES = CATEGORY_DEFINITIONS;
+
+// ========================================
+// LEGACY ПОДДЕРЖКА (для совместимости)
+// ========================================
+
+/**
+ * @deprecated Используйте getWorkoutTypeColor
+ */
+export const getMartialArtColor = getWorkoutTypeColor;
+
+/**
+ * @deprecated Используйте getWorkoutTypeIcon
+ */
+export const getWorkoutIcon = getWorkoutTypeIcon;

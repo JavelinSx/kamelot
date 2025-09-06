@@ -13,6 +13,7 @@ const createTrainerUser = (
   email: string,
   phone: string,
   avatar: string,
+  isActive: boolean,
   patronymic?: string
 ): User => ({
   id,
@@ -21,6 +22,7 @@ const createTrainerUser = (
   email,
   phone,
   avatar,
+  isActive,
   role: "trainer",
   dateOfBirth: "1990-01-01",
   gender: "male",
@@ -38,9 +40,9 @@ export const FAKE_TRAINERS: Trainer[] = [
       "koval@kamelot.com",
       "+7 (495) 123-45-01",
       koval,
-      "Антонович"
+      true
     ),
-    specialization: ["mma", "wrestling", "grappling"] as WorkoutType[],
+    specializations: ["mma", "wrestling", "grappling"] as WorkoutType[],
     experience: 10,
     rating: 4.9,
     reviewsCount: 156,
@@ -100,6 +102,8 @@ export const FAKE_TRAINERS: Trainer[] = [
       averageRating: 4.9,
       yearsExperience: 10,
     },
+    createdAt: "2020-01-01T00:00:00Z",
+    updatedAt: "2024-12-01T00:00:00Z",
   },
 
   {
@@ -110,9 +114,10 @@ export const FAKE_TRAINERS: Trainer[] = [
       "Владимирович",
       "artem@kamelot.com",
       "+7 (495) 123-45-02",
-      artem
+      artem,
+      true
     ),
-    specialization: ["kickboxing", "grappling", "mma"] as WorkoutType[],
+    specializations: ["kickboxing", "grappling", "mma"] as WorkoutType[],
     experience: 8,
     rating: 4.8,
     reviewsCount: 94,
@@ -165,6 +170,8 @@ export const FAKE_TRAINERS: Trainer[] = [
       averageRating: 4.8,
       yearsExperience: 8,
     },
+    createdAt: "2020-01-01T00:00:00Z",
+    updatedAt: "2024-12-01T00:00:00Z",
   },
 
   {
@@ -176,9 +183,9 @@ export const FAKE_TRAINERS: Trainer[] = [
       "ismail@kamelot.com",
       "+7 (495) 123-45-03",
       ismail,
-      "Сахиб Оглы"
+      true
     ),
-    specialization: ["kickboxing", "mma"] as WorkoutType[],
+    specializations: ["kickboxing", "mma"] as WorkoutType[],
     experience: 9,
     rating: 4.8,
     reviewsCount: 143,
@@ -234,6 +241,8 @@ export const FAKE_TRAINERS: Trainer[] = [
       averageRating: 4.8,
       yearsExperience: 9,
     },
+    createdAt: "2020-01-01T00:00:00Z",
+    updatedAt: "2024-12-01T00:00:00Z",
   },
 
   {
@@ -245,9 +254,9 @@ export const FAKE_TRAINERS: Trainer[] = [
       "skripnik@kamelot.com",
       "+7 (495) 123-45-04",
       skripnik,
-      "Анатольевич"
+      true
     ),
-    specialization: ["grappling", "mma"] as WorkoutType[],
+    specializations: ["grappling", "mma"] as WorkoutType[],
     experience: 7,
     rating: 4.7,
     reviewsCount: 89,
@@ -303,6 +312,8 @@ export const FAKE_TRAINERS: Trainer[] = [
       averageRating: 4.7,
       yearsExperience: 7,
     },
+    createdAt: "2020-01-01T00:00:00Z",
+    updatedAt: "2024-12-01T00:00:00Z",
   },
 ];
 
@@ -311,7 +322,7 @@ export const getTrainersBySpecialization = (
   specialization: WorkoutType
 ): Trainer[] => {
   return FAKE_TRAINERS.filter((trainer) =>
-    trainer.specialization.includes(specialization)
+    trainer.specializations.includes(specialization)
   );
 };
 
@@ -334,7 +345,7 @@ export const searchTrainers = (query: string): Trainer[] => {
       trainer.user.firstName.toLowerCase().includes(searchTerm) ||
       trainer.user.lastName.toLowerCase().includes(searchTerm) ||
       trainer.bio?.toLowerCase().includes(searchTerm) ||
-      trainer.specialization.some((spec) =>
+      trainer.specializations.some((spec) =>
         spec.toLowerCase().includes(searchTerm)
       )
   );

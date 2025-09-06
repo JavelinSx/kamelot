@@ -117,12 +117,12 @@
 
                   <!-- Специализации -->
                   <div class="flex flex-wrap gap-1 mt-3">
-                    <UBadge v-for="specialization in trainer.specialization.slice(0, 4)" :key="specialization"
+                    <UBadge v-for="specialization in trainer.specializations.slice(0, 4)" :key="specialization"
                       :color="getMartialArtColor(specialization)" variant="soft" size="xs">
                       {{ getWorkoutTypeLabel(specialization) }}
                     </UBadge>
-                    <UBadge v-if="trainer.specialization.length > 4" color="gray" variant="soft" size="xs">
-                      +{{ trainer.specialization.length - 4 }}
+                    <UBadge v-if="trainer.specializations.length > 4" color="gray" variant="soft" size="xs">
+                      +{{ trainer.specializations.length - 4 }}
                     </UBadge>
                   </div>
 
@@ -196,11 +196,9 @@
 </template>
 
 <script setup lang="ts">
-import type { Trainer } from '~/types'
+import type { BadgeColor, Trainer } from '~/types'
 import {
-  getMartialArtColor,
   getWorkoutTypeLabel,
-  type BadgeColor
 } from '~/types/martial-arts'
 
 interface Props {
@@ -336,7 +334,7 @@ const gridClasses = computed(() => {
 const availableSpecializations = computed(() => {
   const specializations = new Set<string>()
   props.trainers.forEach(trainer => {
-    trainer.specialization.forEach(spec => specializations.add(spec))
+    trainer.specializations.forEach(spec => specializations.add(spec))
   })
   return Array.from(specializations)
 })

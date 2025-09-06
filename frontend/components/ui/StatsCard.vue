@@ -75,12 +75,7 @@
 </template>
 
 <script setup lang="ts">
-import {
-  getIconBackgroundClass,
-  getIconColorClass,
-  getProgressColor,
-  type BadgeColor
-} from '~/types/martial-arts'
+import type { BadgeColor } from '@/types/constants'
 
 interface SubMetric {
   label: string
@@ -150,10 +145,59 @@ const changeColorClass = computed(() => {
   return props.change.value >= 0 ? 'text-green-500' : 'text-red-500'
 })
 
-// Используем централизованные утилиты
-const iconColorClass = computed(() => getIconColorClass(props.color))
-const iconBackgroundClass = computed(() => getIconBackgroundClass(props.color))
-const progressColor = computed(() => getProgressColor(props.color))
+// Цветовые схемы для иконок
+const iconColorClass = computed(() => {
+  const colorMap: Record<BadgeColor, string> = {
+    primary: 'text-blue-400',
+    red: 'text-red-400',
+    orange: 'text-orange-400',
+    amber: 'text-amber-400',
+    yellow: 'text-yellow-400',
+    lime: 'text-lime-400',
+    green: 'text-green-400',
+    emerald: 'text-emerald-400',
+    teal: 'text-teal-400',
+    cyan: 'text-cyan-400',
+    sky: 'text-sky-400',
+    blue: 'text-blue-400',
+    indigo: 'text-indigo-400',
+    violet: 'text-violet-400',
+    purple: 'text-purple-400',
+    fuchsia: 'text-fuchsia-400',
+    pink: 'text-pink-400',
+    rose: 'text-rose-400',
+  }
+  return colorMap[props.color] || 'text-blue-400'
+})
+
+const iconBackgroundClass = computed(() => {
+  const backgroundMap: Record<BadgeColor, string> = {
+    primary: 'bg-blue-500/10',
+    red: 'bg-red-500/10',
+    orange: 'bg-orange-500/10',
+    amber: 'bg-amber-500/10',
+    yellow: 'bg-yellow-500/10',
+    lime: 'bg-lime-500/10',
+    green: 'bg-green-500/10',
+    emerald: 'bg-emerald-500/10',
+    teal: 'bg-teal-500/10',
+    cyan: 'bg-cyan-500/10',
+    sky: 'bg-sky-500/10',
+    blue: 'bg-blue-500/10',
+    indigo: 'bg-indigo-500/10',
+    violet: 'bg-violet-500/10',
+    purple: 'bg-purple-500/10',
+    fuchsia: 'bg-fuchsia-500/10',
+    pink: 'bg-pink-500/10',
+    rose: 'bg-rose-500/10',
+  }
+  return backgroundMap[props.color] || 'bg-blue-500/10'
+})
+
+const progressColor = computed((): BadgeColor => {
+  // Для UProgress компонента просто возвращаем цвет напрямую
+  return props.color
+})
 
 const handleClick = (event: MouseEvent) => {
   if (props.clickable && !props.loading) {

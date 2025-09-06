@@ -63,7 +63,7 @@
               </h3>
 
               <div class="flex flex-wrap gap-2 sm:gap-3">
-                <div v-for="specialization in trainer.specialization" :key="specialization"
+                <div v-for="specialization in trainer.specializations" :key="specialization"
                   class="rounded-lg px-2 py-1 sm:px-4 sm:py-2 bg-red-600/90 text-white text-xs sm:text-sm font-bold border border-red-700/50 shadow-lg uppercase tracking-wide">
                   {{ getWorkoutTypeLabel(specialization) }}
                 </div>

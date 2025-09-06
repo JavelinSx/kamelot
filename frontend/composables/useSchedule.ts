@@ -2,7 +2,7 @@
 import type {
   ApiResponse,
   BookingResponse,
-  PaginatedApiResponse,
+  PaginatedResponse,
 } from "@/types/api";
 import type { CreateBookingData, ScheduleFilter, ScheduleItem } from "~/types";
 
@@ -21,7 +21,7 @@ export function useSchedule(options: { autoFetch?: boolean } = {}) {
         filters.value = { ...filters.value, ...newFilters };
       }
 
-      const response = await $fetch<PaginatedApiResponse<ScheduleItem>>(
+      const response = await $fetch<PaginatedResponse<ScheduleItem>>(
         "/api/schedule",
         {
           query: filters.value,

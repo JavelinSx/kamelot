@@ -35,11 +35,11 @@
       </div>
       <div class="flex items-center gap-2">
         <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
-        <span class="text-gray-300">Запланировано</span>
+        <span class="text-gray-300">Подтверждено</span>
       </div>
       <div class="flex items-center gap-2">
         <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
-        <span class="text-gray-300">Сегодня</span>
+        <span class="text-gray-300">Ожидает</span>
       </div>
       <div class="flex items-center gap-2">
         <div class="w-3 h-3 bg-red-500 rounded-full"></div>
@@ -170,9 +170,13 @@
 </template>
 
 <script setup lang="ts">
-import type { Booking } from '@/types';
-import { getWorkoutTypeLabel } from '~/types/martial-arts';
-import { getStatusColor } from '~/utils/badge-colors';
+import type { Booking, BookingStatus, WorkoutType } from '@/types';
+import {
+  BOOKING_STATUS_COLORS,
+  BOOKING_STATUS_LABELS,
+  WORKOUT_TYPE_LABELS,
+  type BadgeColor
+} from '@/types/constants';
 
 interface Props {
   bookings: Booking[];
@@ -262,7 +266,20 @@ const formatSelectedDate = computed(() => {
   });
 });
 
-// Methods
+// Helper methods
+const getWorkoutTypeLabel = (type: WorkoutType): string => {
+  return WORKOUT_TYPE_LABELS[type] || type
+}
+
+const getStatusColor = (status: BookingStatus): BadgeColor => {
+  return BOOKING_STATUS_COLORS[status] || 'gray'
+}
+
+const getStatusLabel = (status: BookingStatus): string => {
+  return BOOKING_STATUS_LABELS[status] || status
+}
+
+// Navigation methods
 const previousMonth = () => {
   if (currentView.value === 'month') {
     currentDate.value = new Date(currentDate.value.getFullYear(), currentDate.value.getMonth() - 1, 1);
@@ -300,6 +317,7 @@ const selectBooking = (booking: Booking) => {
   emit('bookingClick', booking);
 };
 
+// Date utility methods
 const isToday = (date: Date): boolean => {
   const today = new Date();
   return isSameDay(date, today);
@@ -330,6 +348,7 @@ const getStartOfWeek = (date: Date): Date => {
   return start;
 };
 
+// Formatting methods
 const formatBookingTime = (booking: Booking): string => {
   return new Date(booking.scheduleItem.startTime).toLocaleTimeString('ru-RU', {
     hour: '2-digit',
@@ -347,6 +366,7 @@ const formatHour = (hour: number): string => {
   return `${hour.toString().padStart(2, '0')}:00`;
 };
 
+// Styling methods
 const getBookingEventClass = (booking: Booking): string => {
   switch (booking.status) {
     case 'completed':
@@ -357,6 +377,10 @@ const getBookingEventClass = (booking: Booking): string => {
       return 'bg-red-500/20 text-red-300 border border-red-500/30';
     case 'pending':
       return 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30';
+    case 'no_show':
+      return 'bg-orange-500/20 text-orange-300 border border-orange-500/30';
+    case 'waiting_list':
+      return 'bg-gray-500/20 text-gray-300 border border-gray-500/30';
     default:
       return 'bg-gray-500/20 text-gray-300 border border-gray-500/30';
   }
@@ -377,16 +401,6 @@ const getBookingPosition = (booking: Booking) => {
     top: `${top}px`,
     height: `${height}px`
   };
-};
-
-const getStatusLabel = (status: string): string => {
-  switch (status) {
-    case 'confirmed': return 'Подтверждено';
-    case 'completed': return 'Завершено';
-    case 'cancelled': return 'Отменено';
-    case 'pending': return 'Ожидает';
-    default: return 'Неизвестно';
-  }
 };
 
 // Watch for prop changes

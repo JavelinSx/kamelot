@@ -40,7 +40,7 @@ export const useAuthStore = defineStore("auth", () => {
 
       // Сохраняем токен в cookie
       const token = useAuthToken();
-      token.value = response.token;
+      token.value = response.tokens.accessToken;
 
       return response;
     } catch (err: any) {
@@ -65,7 +65,7 @@ export const useAuthStore = defineStore("auth", () => {
       user.value = response.user;
 
       const token = useAuthToken();
-      token.value = response.token;
+      token.value = response.tokens.accessToken;
 
       return response;
     } catch (err: any) {

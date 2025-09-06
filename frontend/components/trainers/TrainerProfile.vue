@@ -104,8 +104,8 @@
               <div>
                 <h3 class="text-lg font-medium text-white mb-3">Специализации</h3>
                 <div class="flex flex-wrap gap-2">
-                  <UBadge v-for="specialization in trainer.specialization" :key="specialization"
-                    :color="getMartialArtColor(specialization)" variant="soft">
+                  <UBadge v-for="specialization in trainer.specializations" :key="specialization"
+                    :color="getWorkoutTypeColor(specialization)" variant="soft">
                     {{ getWorkoutTypeLabel(specialization) }}
                   </UBadge>
                 </div>
@@ -180,10 +180,10 @@
                     class="flex items-center justify-between p-3 bg-gray-800/30 rounded-lg hover:bg-gray-800/50 transition-colors cursor-pointer"
                     @click="selectWorkout(workout)">
                     <div class="flex items-center space-x-3">
-                      <UBadge :color="getMartialArtColor(workout.workout.type)" variant="soft" size="xs">
+                      <UBadge :color="getWorkoutTypeColor(workout.workout.type)" variant="soft" size="xs">
                         {{ getWorkoutTypeLabel(workout.workout.type) }}
                       </UBadge>
-                      <span class="text-white">{{ workout.workout.name }}</span>
+                      <span class="text-white">{{ workout.workout.title }}</span>
                     </div>
 
                     <div class="text-right">
@@ -226,8 +226,7 @@
                 <div class="flex-1">
                   <div v-for="rating in [5, 4, 3, 2, 1]" :key="rating" class="flex items-center space-x-2 mb-1">
                     <span class="text-xs text-gray-400 w-3">{{ rating }}</span>
-                    <UProgress :value="getRatingPercentage(rating)" :color="getProgressColor('yellow')"
-                      class="flex-1 h-2" />
+                    <UProgress :value="getRatingPercentage(rating)" color="yellow" class="flex-1 h-2" />
                     <span class="text-xs text-gray-400 w-8">{{ getRatingCount(rating) }}</span>
                   </div>
                 </div>
@@ -259,7 +258,7 @@
                       <p class="text-gray-300 text-sm">{{ review.comment }}</p>
 
                       <div v-if="review.workout" class="mt-2">
-                        <UBadge :color="getMartialArtColor(review.workout)" variant="soft" size="xs">
+                        <UBadge :color="getWorkoutTypeColor(review.workout)" variant="soft" size="xs">
                           {{ getWorkoutTypeLabel(review.workout) }}
                         </UBadge>
                       </div>
@@ -358,12 +357,12 @@
 </template>
 
 <script setup lang="ts">
-import type { ScheduleItem, Trainer } from '~/types';
 import {
-  getMartialArtColor,
-  getProgressColor,
-  getWorkoutTypeLabel
-} from '~/types/martial-arts';
+  WORKOUT_TYPE_COLORS,
+  WORKOUT_TYPE_LABELS,
+  type BadgeColor
+} from '@/types/constants';
+import type { ScheduleItem, Trainer, WorkoutType } from '~/types';
 
 interface MockReview {
   id: number
@@ -463,6 +462,15 @@ const profileActions = computed(() => [
     }
   ]
 ])
+
+// Утилитарные функции
+const getWorkoutTypeLabel = (type: string): string => {
+  return WORKOUT_TYPE_LABELS[type as WorkoutType] || type
+}
+
+const getWorkoutTypeColor = (type: string): BadgeColor => {
+  return WORKOUT_TYPE_COLORS[type as WorkoutType] || 'gray'
+}
 
 // Методы
 const toggleFavorite = () => {

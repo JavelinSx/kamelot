@@ -32,7 +32,7 @@
 
           <!-- Название тренировки -->
           <h3 class="text-lg font-semibold text-white truncate">
-            {{ workout.name }}
+            {{ workout.title }}
           </h3>
         </div>
 
@@ -159,10 +159,7 @@ import type { ScheduleItem, Workout } from '~/types'
 import {
   getDifficultyColor,
   getDifficultyLabel,
-  getMartialArtColor,
-  getStatusColor,
-  getStatusLabel,
-  getWorkoutTypeLabel
+  getWorkoutTypeLabel,
 } from '~/types/martial-arts'
 
 interface Props {
@@ -262,12 +259,12 @@ const handleCardClick = () => {
 
 const handleShareClick = () => {
   // Логика поделиться
-  console.log('Share workout:', props.workout.name)
+  console.log('Share workout:', props.workout.title)
 }
 
 const handleFavoriteClick = () => {
   // Логика добавления в избранное
-  console.log('Add to favorites:', props.workout.name)
+  console.log('Add to favorites:', props.workout.title)
 }
 
 // Утилиты форматирования

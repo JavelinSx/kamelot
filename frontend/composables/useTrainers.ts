@@ -1,5 +1,5 @@
 // composables/useTrainers.ts - Работа с тренерами
-import type { PaginatedApiResponse, TrainerResponse } from "@/types/api";
+import type { PaginatedResponse, TrainerResponse } from "@/types/api";
 import type { Trainer, TrainerFilter } from "~/types";
 
 export function useTrainers(options: { autoFetch?: boolean } = {}) {
@@ -26,7 +26,7 @@ export function useTrainers(options: { autoFetch?: boolean } = {}) {
         filters.value = { ...filters.value, ...newFilters };
       }
 
-      const response = await $fetch<PaginatedApiResponse<Trainer>>(
+      const response = await $fetch<PaginatedResponse<Trainer>>(
         "/api/trainers",
         {
           query: {
@@ -80,10 +80,10 @@ export function useTrainers(options: { autoFetch?: boolean } = {}) {
   const filteredTrainers = computed(() => {
     let filtered = trainers.value;
 
-    if (filters.value.specialization?.length) {
+    if (filters.value.specializations?.length) {
       filtered = filtered.filter((trainer) =>
-        trainer.specialization.some((spec) =>
-          filters.value.specialization!.includes(spec)
+        trainer.specializations.some((spec) =>
+          filters.value.specializations!.includes(spec)
         )
       );
     }

@@ -1,9 +1,6 @@
-// types/utils.ts - ТОЛЬКО УТИЛИТАРНЫЕ ТИПЫ
+// types/utils.ts - Утилитарные типы
 
-// ========================================
-// УТИЛИТАРНЫЕ ТИПЫ
-// ========================================
-
+// Базовые утилитарные типы
 export type DeepPartial<T> = {
   [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
 };
@@ -24,16 +21,37 @@ export type StringKeys<T> = Extract<keyof T, string>;
 
 export type NumberKeys<T> = Extract<keyof T, number>;
 
-export type EntityId<T extends string> = `${T}Id`;
+export type SymbolKeys<T> = Extract<keyof T, symbol>;
+
+// Типы для сущностей
+export type EntityId = number;
 
 export type CreateEntity<T> = Omit<T, "id" | "createdAt" | "updatedAt">;
+
 export type UpdateEntity<T> = Partial<
   Omit<T, "id" | "createdAt" | "updatedAt">
 >;
 
-// ========================================
-// ТИПЫ ДЛЯ ДАТА И ВРЕМЕНИ
-// ========================================
+export type EntityWithTimestamps<T> = T & {
+  createdAt: string;
+  updatedAt: string;
+};
+
+// Типы для дат и времени
+export interface DateRange {
+  start: Date | string;
+  end: Date | string;
+}
+
+export interface TimeRange {
+  start: string; // HH:mm
+  end: string; // HH:mm
+}
+
+export interface DateTimeRange {
+  start: Date | string;
+  end: Date | string;
+}
 
 export interface DateFormatOptions {
   locale?: string;
@@ -53,315 +71,198 @@ export interface RelativeDateOptions {
   style?: "long" | "short" | "narrow";
 }
 
-// ========================================
-// ТИПЫ ДЛЯ ТАБЛИЦ И ФИЛЬТРАЦИИ
-// ========================================
+// Типы для ключей объектов
+export type KeysOfType<T, U> = {
+  [K in keyof T]: T[K] extends U ? K : never;
+}[keyof T];
 
-export interface TableColumn<T = any> {
-  key: string;
-  label: string;
-  sortable?: boolean;
-  searchable?: boolean;
-  width?: string | number;
-  minWidth?: string | number;
-  maxWidth?: string | number;
-  align?: "left" | "center" | "right";
-  fixed?: "left" | "right";
-  render?: (value: any, row: T, index: number) => string | Node;
-  formatter?: (value: any) => string;
+export type PickByType<T, U> = Pick<T, KeysOfType<T, U>>;
+
+export type OmitByType<T, U> = Omit<T, KeysOfType<T, U>>;
+
+// Функциональные типы
+export type Predicate<T> = (value: T) => boolean;
+
+export type Mapper<T, U> = (value: T) => U;
+
+export type Reducer<T, U> = (accumulator: U, current: T, index: number) => U;
+
+export type Comparator<T> = (a: T, b: T) => number;
+
+// Типы для промисов
+export type PromiseValue<T> = T extends Promise<infer U> ? U : T;
+
+export type AsyncFunction<T extends any[], R> = (...args: T) => Promise<R>;
+
+export type SyncFunction<T extends any[], R> = (...args: T) => R;
+
+// Типы для событий
+export type EventHandler<T = Event> = (event: T) => void;
+
+export type EventMap = Record<string, any>;
+
+export type EventKey<T extends EventMap> = string & keyof T;
+
+export type EventCallback<T extends EventMap, K extends EventKey<T>> = (
+  payload: T[K]
+) => void;
+
+// Типы для валидации
+export interface ValidationResult {
+  isValid: boolean;
+  errors: string[];
+  warnings?: string[];
 }
 
-export interface TableState<T = any> {
-  data: T[];
-  loading: boolean;
-  error?: string;
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-  };
-  sorting: {
-    field?: string;
-    direction: "asc" | "desc";
-  };
-  filters: Record<string, any>;
+export type Validator<T> = (value: T) => ValidationResult;
+
+export type ValidatorRule<T> = {
+  validate: Validator<T>;
+  message: string;
+  type: string;
+};
+
+// Типы для состояния
+export type Status = "idle" | "loading" | "success" | "error";
+
+export interface AsyncState<T> {
+  data: T | null;
+  status: Status;
+  error: string | null;
 }
 
-export interface FilterOption {
-  label: string;
-  value: string | number;
-  disabled?: boolean;
-  icon?: string;
+export interface Resource<T> extends AsyncState<T> {
+  refetch: () => Promise<void>;
+  mutate: (data: T) => void;
 }
 
-export interface FilterGroup {
-  key: string;
-  label: string;
-  type: "select" | "multiselect" | "range" | "date" | "toggle";
-  options?: FilterOption[];
-  min?: number;
-  max?: number;
-  step?: number;
-}
-
-export interface SearchConfig {
-  placeholder: string;
-  minChars: number;
-  debounceMs: number;
-  searchIn: string[];
-  highlightMatches: boolean;
-}
-
-export interface SearchResult<T> {
-  items: T[];
-  total: number;
-  query: string;
-  suggestions?: string[];
-  took: number;
-}
-
-// ========================================
-// ТИПЫ ДЛЯ СТАТИСТИКИ И ГРАФИКОВ
-// ========================================
-
-export interface ChartDataPoint {
-  x: string | number | Date;
+// Типы для координат и размеров
+export interface Point {
+  x: number;
   y: number;
-  label?: string;
-  color?: string;
 }
 
-export interface ChartSeries {
-  name: string;
-  data: ChartDataPoint[];
-  color?: string;
-  type?: "line" | "bar" | "area" | "pie";
+export interface Size {
+  width: number;
+  height: number;
 }
 
-export interface ChartConfig {
-  type: "line" | "bar" | "pie" | "doughnut" | "area";
-  title?: string;
+export interface Rectangle extends Point, Size {}
+
+export interface Bounds {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
+}
+
+// Типы для цветов
+export type HexColor = `#${string}`;
+
+export type RgbColor = `rgb(${number}, ${number}, ${number})`;
+
+export type RgbaColor = `rgba(${number}, ${number}, ${number}, ${number})`;
+
+export type Color = HexColor | RgbColor | RgbaColor | string;
+
+// Типы для медиа
+export interface ImageInfo {
+  src: string;
+  alt?: string;
   width?: number;
   height?: number;
-  responsive: boolean;
-  theme: "light" | "dark";
-  colors: string[];
-  legend: {
-    show: boolean;
-    position: "top" | "bottom" | "left" | "right";
-  };
-  tooltip: {
-    enabled: boolean;
-    format?: string;
-  };
+  loading?: "lazy" | "eager";
 }
 
-export interface StatsCard {
-  title: string;
-  value: string | number;
-  change?: {
-    value: number;
-    type: "increase" | "decrease";
-    period: string;
-  };
-  icon?: string;
-  color?: string;
-  format?: "number" | "currency" | "percentage" | "duration";
+export interface VideoInfo {
+  src: string;
+  poster?: string;
+  autoplay?: boolean;
+  muted?: boolean;
+  loop?: boolean;
+  controls?: boolean;
 }
 
-// ========================================
-// ТИПЫ ДЛЯ ЛОКАЛИЗАЦИИ
-// ========================================
+// Типы для браузера
+export type Breakpoint = "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
 
-export interface LocaleConfig {
-  code: string;
-  name: string;
-  flag?: string;
-  rtl: boolean;
-  dateFormat: string;
-  timeFormat: string;
-  currency: string;
-  numberFormat: {
-    decimal: string;
-    thousands: string;
-  };
+export interface MediaQuery {
+  matches: boolean;
+  breakpoint: Breakpoint;
 }
 
-export interface TranslationFunction {
-  (key: string, params?: Record<string, any>): string;
+export interface ViewportSize extends Size {
+  breakpoint: Breakpoint;
 }
 
-export interface DateTimeFormat {
-  short: Intl.DateTimeFormatOptions;
-  long: Intl.DateTimeFormatOptions;
-  numeric: Intl.DateTimeFormatOptions;
+// Типы для сортировки
+export type SortDirection = "asc" | "desc";
+
+export interface SortConfig<T> {
+  field: keyof T;
+  direction: SortDirection;
 }
 
-export interface NumberFormat {
-  currency: Intl.NumberFormatOptions;
-  decimal: Intl.NumberFormatOptions;
-  percent: Intl.NumberFormatOptions;
+export type SortFunction<T> = (a: T, b: T) => number;
+
+// Типы для группировки
+export type GroupKey = string | number;
+
+export type GroupFunction<T> = (item: T) => GroupKey;
+
+export interface Group<T> {
+  key: GroupKey;
+  items: T[];
+  count: number;
 }
 
-// ========================================
-// ТИПЫ ДЛЯ УВЕДОМЛЕНИЙ
-// ========================================
+// Типы для дерева данных
+export interface TreeNode<T = any> {
+  id: string | number;
+  parentId?: string | number | null;
+  data: T;
+  children?: TreeNode<T>[];
+  level?: number;
+  expanded?: boolean;
+}
 
-export interface ToastOptions {
+export type TreeData<T> = TreeNode<T>[];
+
+// Типы для конфигурации
+export interface Config {
+  [key: string]: any;
+}
+
+export type ConfigProvider<T extends Config> = () => T;
+
+export type ConfigResolver<T extends Config> = (config: T) => T;
+
+// Типы для метаданных
+export interface MetaData {
   title?: string;
   description?: string;
-  type: "success" | "error" | "warning" | "info";
-  duration?: number;
-  closable?: boolean;
-  actions?: Array<{
-    label: string;
-    action: () => void;
-    style?: "primary" | "secondary";
-  }>;
+  keywords?: string[];
+  author?: string;
+  image?: string;
+  url?: string;
+  type?: string;
 }
 
-export interface NotificationConfig {
-  position:
-    | "top-right"
-    | "top-left"
-    | "bottom-right"
-    | "bottom-left"
-    | "top-center"
-    | "bottom-center";
-  duration: number;
-  maxNotifications: number;
-  showProgress: boolean;
-  pauseOnHover: boolean;
-  newestOnTop: boolean;
-}
+// Условные типы
+export type If<C extends boolean, T, F> = C extends true ? T : F;
 
-// ========================================
-// ТИПЫ ДЛЯ НАВИГАЦИИ
-// ========================================
+export type IsArray<T> = T extends any[] ? true : false;
 
-export interface NavItem {
-  name: string;
-  path: string;
-  icon?: string;
-  badge?: string | number;
-  children?: NavItem[];
-  meta?: {
-    requiresAuth?: boolean;
-    roles?: string[];
-    exact?: boolean;
-  };
-}
+export type IsObject<T> = T extends object
+  ? T extends any[]
+    ? false
+    : true
+  : false;
 
-export interface MenuItem {
-  label: string;
-  icon?: string;
-  to?: string;
-  click?: () => void;
-  disabled?: boolean;
-  divider?: boolean;
-  children?: MenuItem[];
-}
+export type IsFunction<T> = T extends (...args: any[]) => any ? true : false;
 
-// ========================================
-// ТИПЫ ДЛЯ МЕДИА И ФАЙЛОВ
-// ========================================
+export type IsString<T> = T extends string ? true : false;
 
-export interface MediaFile {
-  id: string;
-  name: string;
-  url: string;
-  type: string;
-  size: number;
-  width?: number;
-  height?: number;
-  alt?: string;
-  createdAt: string;
-}
+export type IsNumber<T> = T extends number ? true : false;
 
-export interface UploadOptions {
-  accept?: string;
-  multiple?: boolean;
-  maxSize?: number;
-  maxFiles?: number;
-  quality?: number;
-  resize?: {
-    width: number;
-    height: number;
-  };
-}
-
-// ========================================
-// ТИПЫ ДЛЯ КАЛЕНДАРЯ
-// ========================================
-
-export interface CalendarOptions {
-  view: "month" | "week" | "day" | "agenda";
-  locale: string;
-  firstDayOfWeek: 0 | 1 | 2 | 3 | 4 | 5 | 6;
-  showWeekNumbers: boolean;
-  showOtherMonths: boolean;
-  selectOtherMonths: boolean;
-  minDate?: Date;
-  maxDate?: Date;
-  disabledDates?: Date[] | ((date: Date) => boolean);
-  highlightedDates?: Date[] | ((date: Date) => boolean);
-  eventColor?: string | ((event: any) => string);
-  dayMaxEvents?: number;
-  moreLinkText?: string | ((num: number) => string);
-}
-
-// ========================================
-// ТИПЫ ДЛЯ АНИМАЦИЙ
-// ========================================
-
-export interface AnimationPreset {
-  name: string;
-  enter: {
-    from: Record<string, any>;
-    to: Record<string, any>;
-    duration: number;
-    easing?: string;
-  };
-  leave: {
-    from: Record<string, any>;
-    to: Record<string, any>;
-    duration: number;
-    easing?: string;
-  };
-}
-
-export interface TransitionOptions {
-  name?: string;
-  mode?: "in-out" | "out-in" | "default";
-  duration?: number | { enter: number; leave: number };
-  easing?: string;
-  disabled?: boolean;
-}
-
-// ========================================
-// ТИПЫ ДЛЯ ПРОИЗВОДИТЕЛЬНОСТИ
-// ========================================
-
-export interface PerformanceConfig {
-  enableProfiling: boolean;
-  enableDevtools: boolean;
-  lazyLoading: {
-    images: boolean;
-    components: boolean;
-    routes: boolean;
-  };
-  caching: {
-    api: boolean;
-    static: boolean;
-    ttl: number;
-  };
-  bundleAnalysis: boolean;
-}
-
-export interface PerformanceMetric {
-  name: string;
-  value: number;
-  unit: string;
-  timestamp: number;
-  tags?: Record<string, string>;
-}
+export type IsBoolean<T> = T extends boolean ? true : false;

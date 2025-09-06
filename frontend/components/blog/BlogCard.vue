@@ -47,7 +47,7 @@
 
       <!-- Tags -->
       <div v-if="post.tags.length > 0" class="flex flex-wrap gap-2 mb-4">
-        <span v-for="tag in post.tags.slice(0, 3)" :key="tag"
+        <span v-for="tag in post.tags.slice(0, 3)" :key="tag.id"
           class="px-2 py-1 bg-gray-800 text-gray-400 text-xs rounded-md hover:bg-gray-700 transition-colors cursor-pointer">
           #{{ tag }}
         </span>
@@ -113,8 +113,7 @@
 </template>
 
 <script setup lang="ts">
-import type { BlogPost } from '~/types'
-import type { BadgeColor } from '~/types/martial-arts'
+import type { BadgeColor, BlogPost } from '~/types'
 
 interface Props {
   post: BlogPost

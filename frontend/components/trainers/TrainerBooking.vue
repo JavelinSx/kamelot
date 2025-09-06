@@ -20,7 +20,7 @@
 
           <!-- Специализации -->
           <div class="flex flex-wrap gap-1 mt-2">
-            <UBadge v-for="specialization in trainer.specialization.slice(0, 3)" :key="specialization"
+            <UBadge v-for="specialization in trainer.specializations.slice(0, 3)" :key="specialization"
               :color="getMartialArtColor(specialization)" variant="soft" size="xs">
               {{ getWorkoutTypeLabel(specialization) }}
             </UBadge>
@@ -214,7 +214,7 @@
                 {{ trainer.user.firstName }} {{ trainer.user.lastName }}
               </h4>
               <p class="text-sm text-gray-400">
-                {{trainer.specialization.map(s => getWorkoutTypeLabel(s)).join(', ')}}
+                {{trainer.specializations.map(s => getWorkoutTypeLabel(s)).join(', ')}}
               </p>
             </div>
           </div>
